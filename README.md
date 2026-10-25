@@ -1,10 +1,12 @@
 # Address Plan (AdresPlan)
 
-> **EN:** A local web app for planning IPv4 (VLSM) and IPv6 addressing for multi-building networks. You describe sites, buildings, VLANs and device counts; the app allocates subnets, validates the plan and generates documentation (XLSX, DOCX, CSV, Markdown, JSON, print/PDF) plus starting gateway configurations for Cisco IOS and MikroTik. Polish and English interface, Python + FastAPI + HTMX + SQLite, 770 automated tests. Built with AI coding assistants — see [How it was built](#jak-powstał-projekt).
+[![CI](https://github.com/tomekdyrc-tech/address-plan/actions/workflows/ci.yml/badge.svg)](https://github.com/tomekdyrc-tech/address-plan/actions/workflows/ci.yml)
+
+> **EN:** A local web app for planning IPv4 (VLSM) and IPv6 addressing for multi-building networks. You describe sites, buildings, VLANs and device counts; the app allocates subnets, validates the plan and generates documentation (XLSX, DOCX, CSV, Markdown, JSON, print/PDF) plus starting gateway configurations for Cisco IOS and MikroTik. Polish and English interface, Python + FastAPI + HTMX + SQLite, 771 automated tests. Built with AI coding assistants — see [How it was built](#jak-powstał-projekt).
 
 Lokalna aplikacja do planowania adresacji IPv4 (VLSM) i IPv6 w sieciach z kilkoma lokalizacjami, budynkami i VLAN-ami. Podajesz strukturę sieci i liczbę urządzeń, a program przydziela podsieci, sprawdza błędy i przygotowuje gotową dokumentację.
 
-![Edytor planu adresacji](docs/screenshots/editor-light.jpg)
+![Edytor planu adresacji — przykładowy projekt szkoły z dwoma budynkami](docs/screenshots/editor-light.jpg)
 
 ## Jaki problem rozwiązuje
 
@@ -72,7 +74,7 @@ Wolny zostaje blok `192.168.10.240/28`. Przykładowe gotowe pliki: [raport Markd
 
 ## Jakość
 
-- **770 testów automatycznych**: przykłady referencyjne, testy właściwościowe (Hypothesis) sprawdzające m.in. brak nakładania się podsieci, testy CLI, eksportów, bazy, interfejsu HTTP i kompletności tłumaczeń.
+- **771 testów automatycznych**: przykłady referencyjne, testy właściwościowe (Hypothesis) sprawdzające m.in. brak nakładania się podsieci, testy CLI, eksportów, bazy, interfejsu HTTP i kompletności tłumaczeń.
 - Kontrola typów **mypy w trybie strict** i linter **Ruff** bez błędów.
 - CI w GitHub Actions: Linux (Python 3.11 i 3.12), Windows, budowa paczki i test kontenera Docker.
 
