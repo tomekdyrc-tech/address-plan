@@ -13,9 +13,11 @@ from adresplan.application.project_json import InputIssue, ProjectJSONError, loa
 from adresplan.application.templates import apply_template, building_template
 from adresplan.application.ula import generate_ula
 from adresplan.core.models import Project
+from adresplan.i18n import tr
 from adresplan.store.sqlite import input_document
 
 
+# Labels and choice names are Polish ids; templates translate them with tr().
 @dataclass(frozen=True)
 class Field:
     key: str
@@ -123,7 +125,7 @@ def edited_project(project: Project, form: Mapping[str, Any]) -> Project:
     ipv6_usage = form.get("ipv6_usage")
     if ipv6_usage not in (None, "yes", "no"):
         raise ProjectJSONError(
-            (InputIssue((), "ipv6_usage", "Wybierz, czy planujesz używać IPv6."),)
+            (InputIssue((), "ipv6_usage", tr("Wybierz, czy planujesz używać IPv6.")),)
         )
     for field in (*PROJECT_FIELDS, *DOCUMENT_FIELDS):
         if ipv6_usage == "no" and field.key.startswith("v6_"):
@@ -166,7 +168,7 @@ def edited_project(project: Project, form: Mapping[str, Any]) -> Project:
         node = {
             "id": uuid4().hex,
             "kind": kind,
-            "name": str(form.get("new_name", "Nowy element")),
+            "name": str(form.get("new_name", tr("Nowy element"))),
             "parent_id": None if kind == "site" else str(form.get("new_parent", "")),
         }
         if kind == "segment":
@@ -193,7 +195,7 @@ def edited_project(project: Project, form: Mapping[str, Any]) -> Project:
                 current,
                 building_template(current, original),
                 node["parent_id"],
-                node["name"] + " — kopia",
+                node["name"] + " — " + tr("kopia"),
             )
         if node is None or node["kind"] != "segment":
             raise ProjectJSONError(
@@ -201,14 +203,14 @@ def edited_project(project: Project, form: Mapping[str, Any]) -> Project:
                     InputIssue(
                         ("nodes",),
                         "duplicate_segment",
-                        "Wybierz istniejący segment lub budynek do duplikowania.",
+                        tr("Wybierz istniejący segment lub budynek do duplikowania."),
                     ),
                 )
             )
         copied = {
             **node,
             "id": uuid4().hex,
-            "name": node["name"] + " — kopia",
+            "name": node["name"] + " — " + tr("kopia"),
             "pinned_v4": None,
             "pinned_v6": None,
         }
@@ -227,7 +229,7 @@ def edited_project(project: Project, form: Mapping[str, Any]) -> Project:
                         InputIssue(
                             (),
                             "ipv6_disabled",
-                            "Włącz IPv6 w sekcji Pule i reguły przed dodaniem blokady IPv6.",
+                            tr("Włącz IPv6 w sekcji Pule i reguły przed dodaniem blokady IPv6."),
                         ),
                     )
                 )
@@ -240,7 +242,7 @@ def edited_project(project: Project, form: Mapping[str, Any]) -> Project:
             )
         if not added:
             raise ProjectJSONError(
-                (InputIssue((), "blocked_empty", "Wpisz przynajmniej jedną podsieć CIDR."),)
+                (InputIssue((), "blocked_empty", tr("Wpisz przynajmniej jedną podsieć CIDR.")),)
             )
         data["blocked_subnets"].extend(b for b in added if b not in data["blocked_subnets"])
     elif action.startswith("block-delete:"):
@@ -251,7 +253,7 @@ def edited_project(project: Project, form: Mapping[str, Any]) -> Project:
             del data["blocked_subnets"][index]
         except (ValueError, IndexError) as error:
             raise ProjectJSONError(
-                (InputIssue((), "blocked_index", "Nie znaleziono blokady."),)
+                (InputIssue((), "blocked_index", tr("Nie znaleziono blokady.")),)
             ) from error
     elif action == "unpin":
         for node in data["nodes"]:
@@ -268,5 +270,5 @@ def revision(form: Mapping[str, Any]) -> int:
         return value
     except ValueError as error:
         raise ProjectJSONError(
-            (InputIssue(("revision",), "revision", "Brak poprawnej wersji zapisu."),)
+            (InputIssue(("revision",), "revision", tr("Brak poprawnej wersji zapisu.")),)
         ) from error

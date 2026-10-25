@@ -1,44 +1,48 @@
-# Architektura Address Plan
-
-## Przepływ danych
+# Architektura
 
 ```mermaid
 flowchart LR
-    UI[Przeglądarka HTMX] --> WEB[FastAPI i formularze]
-    CLI[CLI] --> APP[Walidacja wejścia i raporty]
+    UI[Przeglądarka HTMX] --> WEB[web: FastAPI, trasy, szablony]
+    CLI[cli] --> APP[application: walidacja, JSON, historia]
     WEB --> APP
-    WEB --> DB[(SQLite wejście, historia, szablony)]
-    APP --> CORE[Czysty planer IPv4 i IPv6]
+    WEB --> DB[(store: SQLite)]
+    APP --> CORE[core: planer IPv4 i IPv6]
     CORE --> PLAN[Plan i diagnostyka]
-    PLAN --> OUT[CSV Markdown JSON XLSX DOCX SVG]
+    PLAN --> OUT[export: MD, CSV, XLSX, DOCX, SVG, Cisco, MikroTik]
     PLAN --> UI
 ```
 
-`core` to reguły sieciowe i obliczenia na niezmiennych modelach. Nie odczytuje plików, zegara, bazy ani HTTP. Biblioteka `ipaddress` zapewnia arytmetykę CIDR; kod nie tworzy list wszystkich hostów. Ten sam generyczny alokator obsługuje obie rodziny. Najpierw odejmuje blokady zajętych podsieci, potem rozpatruje przypięcia i przydziela największe potrzeby metodą best-fit.
+## Warstwy
 
-`application` waliduje wejście Pydantic, importuje JSON i przygotowuje świeży plan. Migawka planu w pliku jest poglądowa. Eksporty używają wspólnego raportu; nie implementują ponownie VLSM. Eksport JSON ma wersję 2; importer obsługuje wersje 1 i 2.
+| Pakiet | Odpowiada za |
+| --- | --- |
+| `core` | Obliczenia sieciowe na niezmiennych modelach: wielkość podsieci, alokator, hierarchia, IPv6, walidacja, zamrażanie. Tylko biblioteka standardowa; bez plików, bazy i HTTP |
+| `application` | Walidacja wejścia (Pydantic), import i eksport JSON, historia zmian, szablony, komunikaty |
+| `export` | Raporty i pliki: Markdown, CSV, Office, diagram SVG, konfiguracja urządzeń. Korzystają ze wspólnego raportu i nie liczą adresacji od nowa |
+| `store` | SQLite: projekty, niezmienne wersje historii, szablony; zapis w transakcjach z kontrolą wersji |
+| `web` | FastAPI, Jinja2 i HTMX. `app.py` składa aplikację, `state.py` trzyma wspólne narzędzia, a `routes/` dzieli trasy na projekty, bibliotekę, historię, eksporty, kalkulator, API i język |
+| `i18n.py` | Tłumaczenia: polski tekst w kodzie jest kluczem, angielski słownik leży w `locale/en.json` |
+| `cli.py` | Wiersz poleceń z tymi samymi obliczeniami co interfejs |
 
-`store` przechowuje w SQLite bieżące wejście i metadane, niezmienne migawki historii (wejście oraz wynik) i szablony budynków. Osobny klucz zapisu pozwala importować dwa projekty o tym samym wewnętrznym ID. Zapis odbywa się w transakcji `BEGIN IMMEDIATE`; oczekiwana wersja musi zgadzać się z wersją bazy. Stara karta otrzymuje 409, zamiast nadpisywać cudzą zmianę. Schemat SQLite ma wersję 2. Migracja z wersji 1 działa w jednej transakcji i zapisuje stan początkowy historii; nowsze i obce schematy są odrzucane.
+Test pilnuje, żeby `core` importował wyłącznie bibliotekę standardową i samego siebie.
 
-`web` łączy FastAPI, Jinja2 i lokalny HTMX. Zwykła edycja po 300 ms wymienia wynik i drzewo, zachowując pola. Zmiany struktury wymieniają formularz i na czas żądania go blokują. Kolejka zapisów i nagłówek rewizji chronią kolejność odpowiedzi. Motyw jest lokalną preferencją przeglądarki.
+## Jak działa przydział
 
-`export` tworzy raporty tekstowe oraz Office. XLSX zapisuje wartości jako tekst, bez aktywnych formuł, hiperłączy i zaokrąglania dużych liczb IPv6. CSV dodatkowo neutralizuje tekst przypominający formułę. DOCX tworzy zwykłe teksty i tabele, bez makr. Zapis pliku najpierw tworzy plik tymczasowy, a następnie atomowo podmienia docelowy.
+1. Ze wszystkich segmentów wyliczana jest potrzebna wielkość podsieci (hosty, zapas, bramy, adresy statyczne).
+2. Z puli odejmowane są blokady zajętych podsieci, a potem sieci przypięte ręcznie.
+3. Pozostałe potrzeby dostają miejsce metodą best-fit, od największej. Ten sam alokator obsługuje IPv4 i IPv6.
+4. Hierarchia działa od góry: lokalizacja dostaje blok, budynki dzielą go między siebie, segmenty dzielą blok budynku.
 
-## Reguły ważne przy utrzymaniu
+Wszystkie obliczenia używają modułu `ipaddress`. Program nigdy nie tworzy listy wszystkich hostów, więc działa także dla dużych pul IPv6.
 
-- Wynik częściowy jest użyteczny diagnostycznie, ale nie może być zamrożony. Eksport musi zachować jego status i błędy.
-- Zamrażanie przypina IPv4, IPv6 i infrastrukturę. Nie powiększa samoczynnie rodzica działającej sieci.
-- Kopia segmentu ma nowe ID i puste przypięcia obu rodzin. VLAN zostaje skopiowany; w tej samej lokalizacji może pojawić się ostrzeżenie o jego powtórzeniu.
-- Nie dodawaj logiki sieciowej do JavaScript, SQL ani generatorów dokumentów. Rozszerzaj rdzeń i testy referencyjne T1–T5.
-- ULA losujemy poza rdzeniem i zapisujemy jako wejście; przeliczenie nie zmienia prefiksu.
-- Domyślny serwer jest lokalny. Jawne `--host 0.0.0.0` służy kontenerowi, a Compose mapuje port wyłącznie na `127.0.0.1`. Aplikacja nie zawiera uwierzytelniania do publicznego hostingu.
+## Języki
 
-## Co warto umieć wyjaśnić podczas prezentacji projektu
+Funkcja `tr()` zwraca tekst w aktywnym języku. Język jest zmienną kontekstową (`ContextVar`): interfejs ustawia go dla każdego żądania (ciasteczko lub nagłówek `Accept-Language`), a CLI na czas jednego polecenia. Dzięki temu eksporty nie potrzebują dodatkowego parametru. Testy sprawdzają, że każdy tekst ma tłumaczenie i że w wersji angielskiej nie zostaje polski tekst aplikacji.
 
-1. Dlaczego 100 hostów, 25% zapasu, jedna brama i osiem statycznych wymagają 134 adresów użytecznych, czyli /24.
-2. Jak hierarchia upraszcza trasy: segmenty mieszczą się w jednym bloku budynku, a budynki w lokalizacji.
-3. Dlaczego LAN IPv6 używa /64, P2P /127, a loopback /128.
-4. Co chroni freeze i dlaczego duplikat segmentu musi mieć inne ID oraz puste przypięcie.
-5. Jak testy deterministyczności, rozłączności i zawierania uzupełniają ręczną weryfikację adresów.
+## Zasady przy rozwijaniu
 
-Wymagana wiedza do rozwijania programu: Python, dataclasses, Pydantic, pytest/Hypothesis; dla interfejsu podstawy HTTP, HTML i HTMX; dla wdrożenia SQLite, Git oraz opcjonalnie Docker. Do korzystania z aplikacji wystarczą Python, przeglądarka i wiedza sieciowa.
+- Logika sieciowa należy do `core`, nie do JavaScriptu, SQL ani eksporterów.
+- Plan częściowy jest pokazywany i eksportowany, ale nie może zostać zamrożony.
+- Zamrażanie nie powiększa samo rodzica działającej sieci; brak miejsca to błąd.
+- Prefiks ULA jest losowany poza rdzeniem i zapisywany jako dane wejściowe.
+- Nowy tekst widoczny dla użytkownika piszemy po polsku w `tr()` i dodajemy tłumaczenie do `locale/en.json`.

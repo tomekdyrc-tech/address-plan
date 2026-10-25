@@ -6,7 +6,8 @@ from collections import defaultdict
 from dataclasses import dataclass
 
 from adresplan.core.models import FindingLevel, NodeKind, Project, node_sort_key
-from adresplan.export.common import create_report
+from adresplan.export.common import create_report, ipv6_description
+from adresplan.i18n import tr
 
 
 @dataclass(frozen=True)
@@ -37,14 +38,14 @@ def dumps_svg(project: Project) -> str:
             project.name,
             report.status,
             str(project.v4_pool),
-            project.ipv6_description,
+            ipv6_description(project),
             "#173b49",
         )
     ]
     kinds = {
-        NodeKind.SITE: "Lokalizacja",
-        NodeKind.BUILDING: "Budynek",
-        NodeKind.SEGMENT: "Segment",
+        NodeKind.SITE: tr("Lokalizacja"),
+        NodeKind.BUILDING: tr("Budynek"),
+        NodeKind.SEGMENT: tr("Segment"),
     }
     for node in sorted(project.nodes, key=node_sort_key):
         cards.append(
@@ -52,7 +53,7 @@ def dumps_svg(project: Project) -> str:
                 "n:" + node.id,
                 "n:" + node.parent_id if node.parent_id else "root",
                 node.name,
-                kinds[node.kind] + (" · BŁĄD" if node.id in errors else ""),
+                kinds[node.kind] + (" · " + tr("BŁĄD") if node.id in errors else ""),
                 v4.get(node.id, "—"),
                 v6.get(node.id, "—"),
                 "#b42338" if node.id in errors else "#246675",
@@ -63,8 +64,8 @@ def dumps_svg(project: Project) -> str:
             _Card(
                 f"block:{i}",
                 "n:" + block.parent_id if block.parent_id else "root",
-                block.note or "Zajęta podsieć",
-                "Blokada zewnętrzna",
+                block.note or tr("Zajęta podsieć"),
+                tr("Blokada zewnętrzna"),
                 str(block.network) if block.network.version == 4 else "—",
                 str(block.network) if block.network.version == 6 else "—",
                 "#985c19",
@@ -75,8 +76,8 @@ def dumps_svg(project: Project) -> str:
             _Card(
                 "infra:" + pool.site_id,
                 "n:" + pool.site_id,
-                "Infrastruktura IPv6",
-                "Rezerwa · P2P · loopback",
+                tr("Infrastruktura IPv6"),
+                tr("Rezerwa · P2P · loopback"),
                 "—",
                 str(pool.network),
             )
@@ -105,10 +106,16 @@ def dumps_svg(project: Project) -> str:
     svg = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
         f'viewBox="0 0 {width} {height}" role="img" aria-labelledby="title desc">',
-        f'<title id="title">Plan adresacji: {_escape(project.name)}</title>',
-        '<desc id="desc">Hierarchia adresacji, nie fizyczna topologia połączeń. '
-        "Czerwone karty oznaczają błędy, brązowe — zajęte podsieci. "
-        "Brak CIDR oznaczono kreską.</desc>",
+        f'<title id="title">{_escape(tr("Plan adresacji: {name}", name=project.name))}</title>',
+        '<desc id="desc">'
+        + _escape(
+            tr(
+                "Hierarchia adresacji, nie fizyczna topologia połączeń. "
+                "Czerwone karty oznaczają błędy, brązowe — zajęte podsieci. "
+                "Brak CIDR oznaczono kreską."
+            )
+        )
+        + "</desc>",
         f'<rect width="{width}" height="{height}" fill="#f3f7f8"/>',
         '<text x="24" y="32" font-family="sans-serif" font-size="20" fill="#173b49">'
         f"Address Plan · {_escape(report.status)}</text>",

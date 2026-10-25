@@ -1,30 +1,30 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="page-heading"><div><p class="eyebrow">Warsztat adresacji</p><h1>Twoje projekty sieci</h1><p>Opisz lokalizacje i urządzenia. Aplikacja przydzieli podsieci i przygotuje dokumentację.</p></div></div>
-<ol class="workflow"><li><strong>1. Ustal pulę</strong><span>Wybierz zakres adresów całej sieci.</span></li><li><strong>2. Opisz sieć</strong><span>Dodaj lokalizacje, budynki i sieci urządzeń lub użyj szablonu.</span></li><li><strong>3. Pobierz dokumentację</strong><span>Sprawdź wyniki i eksportuj do PDF, Worda lub Excela.</span></li></ol>
+<div class="page-heading"><div><p class="eyebrow">{{ tr("Warsztat adresacji") }}</p><h1>{{ tr("Twoje projekty sieci") }}</h1><p>{{ tr("Opisz lokalizacje i urządzenia. Aplikacja przydzieli podsieci i przygotuje dokumentację.") }}</p></div></div>
+<ol class="workflow"><li><strong>{{ tr("1. Ustal pulę") }}</strong><span>{{ tr("Wybierz zakres adresów całej sieci.") }}</span></li><li><strong>{{ tr("2. Opisz sieć") }}</strong><span>{{ tr("Dodaj lokalizacje, budynki i sieci urządzeń lub użyj szablonu.") }}</span></li><li><strong>{{ tr("3. Pobierz dokumentację") }}</strong><span>{{ tr("Sprawdź wyniki i eksportuj do PDF, Worda lub Excela.") }}</span></li></ol>
 <div class="home-grid">
-<section class="panel"><h2>Nowy projekt</h2>
+<section class="panel"><h2>{{ tr("Nowy projekt") }}</h2>
 <form action="/projects/new" method="post" class="stack">
 <input type="hidden" name="csrf" value="{{ csrf }}">
-<label>Nazwa projektu<input name="name" required value="Moja sieć"></label>
-<label>Pula IPv4 dla całego projektu<input name="v4_pool" required value="10.0.0.0/16" class="mono" spellcheck="false" aria-describedby="pool-help"></label>
-<p class="hint" id="pool-help">To zakres, z którego przydzielimy podsieci. Domyślne 10.0.0.0/16 to prywatna pula obejmująca adresy 10.0.0.0–10.0.255.255. Możesz ją zmienić.</p>
-<label>Czy planujesz używać IPv6 w tej sieci?<select name="ipv6_usage"><option value="no">Nie — planuj tylko IPv4</option><option value="yes">Tak — planuj IPv4 i IPv6</option></select></label><p class="hint">IPv6 dodajemy tylko po wyborze „Tak”. Przygotujemy prywatny prefiks ULA /48; w edytorze możesz go zmienić na prefiks od operatora.</p>
-<label>Zacznij od<select name="start_template"><option value="">Pusta struktura — sam dodam sieci</option>{% for key, t in starters.items() %}<option value="building|starter:{{ key }}">Gotowy zestaw: {{ t.building.name }}</option>{% endfor %}{% for t in building_templates %}<option value="{{ t.kind }}|{{ t.key }}">Mój szablon: {{ t.name }} ({{ 'lokalizacja' if t.kind == 'site' else 'budynek' }})</option>{% endfor %}</select></label>
-<p class="hint">Obiekt podstawowy: pracownicy 20, goście 30, zarządzanie 5. Obiekt rozbudowany: pracownicy 10, urządzenia i usługi 30, goście 60, zarządzanie 5. Liczby i VLAN-y zmienisz w edytorze.</p>
-<div class="fields"><label>Pierwsza lokalizacja<input name="site_name" value="Siedziba" required placeholder="np. Warszawa"></label><label>Nazwa budynku<input name="building_name" value="Budynek główny" required><span class="hint">Przy szablonie lokalizacji zachowujemy jego budynki.</span></label></div>
-<button type="submit">Utwórz i przejdź do sieci</button></form></section>
-<section class="panel"><h2>Import projektu</h2>
+<label>{{ tr("Nazwa projektu") }}<input name="name" required value="{{ tr('Moja sieć') }}"></label>
+<label>{{ tr("Pula IPv4 dla całego projektu") }}<input name="v4_pool" required value="10.0.0.0/16" class="mono" spellcheck="false" aria-describedby="pool-help"></label>
+<p class="hint" id="pool-help">{{ tr("To zakres, z którego przydzielimy podsieci. Domyślne 10.0.0.0/16 to prywatna pula obejmująca adresy 10.0.0.0–10.0.255.255. Możesz ją zmienić.") }}</p>
+<label>{{ tr("Czy planujesz używać IPv6 w tej sieci?") }}<select name="ipv6_usage"><option value="no">{{ tr("Nie — planuj tylko IPv4") }}</option><option value="yes">{{ tr("Tak — planuj IPv4 i IPv6") }}</option></select></label><p class="hint">{{ tr("IPv6 dodajemy tylko po wyborze „Tak”. Przygotujemy prywatny prefiks ULA /48; w edytorze możesz go zmienić na prefiks od operatora.") }}</p>
+<label>{{ tr("Zacznij od") }}<select name="start_template"><option value="">{{ tr("Pusta struktura — sam dodam sieci") }}</option>{% for key, t in starters.items() %}<option value="building|starter:{{ key }}">{{ tr("Gotowy zestaw:") }} {{ t.building.name }}</option>{% endfor %}{% for t in building_templates %}<option value="{{ t.kind }}|{{ t.key }}">{{ tr("Mój szablon:") }} {{ t.name }} ({{ tr('lokalizacja') if t.kind == 'site' else tr('budynek') }})</option>{% endfor %}</select></label>
+<p class="hint">{{ tr("Obiekt podstawowy: pracownicy 20, goście 30, zarządzanie 5. Obiekt rozbudowany: pracownicy 10, urządzenia i usługi 30, goście 60, zarządzanie 5. Liczby i VLAN-y zmienisz w edytorze.") }}</p>
+<div class="fields"><label>{{ tr("Pierwsza lokalizacja") }}<input name="site_name" value="{{ tr('Siedziba') }}" required placeholder="{{ tr("np. Warszawa") }}"></label><label>{{ tr("Nazwa budynku") }}<input name="building_name" value="{{ tr('Budynek główny') }}" required><span class="hint">{{ tr("Przy szablonie lokalizacji zachowujemy jego budynki.") }}</span></label></div>
+<button type="submit">{{ tr("Utwórz i przejdź do sieci") }}</button></form></section>
+<section class="panel"><h2>{{ tr("Import projektu") }}</h2>
 <form action="/projects/import" method="post" enctype="multipart/form-data" class="stack">
 <input type="hidden" name="csrf" value="{{ csrf }}">
-<label>Plik JSON<input type="file" name="file" accept=".json,application/json" required></label>
-<p class="hint">Import tworzy osobny projekt. Adresy zostaną przeliczone na podstawie danych wejściowych.</p>
-<button type="submit" class="secondary">Importuj JSON</button></form></section>
+<label>{{ tr("Plik JSON") }}<input type="file" name="file" accept=".json,application/json" required></label>
+<p class="hint">{{ tr("Import tworzy osobny projekt. Adresy zostaną przeliczone na podstawie danych wejściowych.") }}</p>
+<button type="submit" class="secondary">{{ tr("Importuj JSON") }}</button></form></section>
 </div>
-<section class="panel"><h2>Kopia wszystkich danych</h2><p>Pobierz projekty, pełną historię i bibliotekę szablonów w jednym pliku.</p><a class="button secondary" href="/library/backup.sqlite3">Pobierz pełną kopię zapasową</a><details><summary>Jak odtworzyć kopię?</summary><p>Zatrzymaj aplikację i uruchom ją poleceniem <code>adresplan serve --database ŚCIEŻKA_DO_POBRANEGO_PLIKU</code>. Obecna baza pozostanie zachowana.</p></details></section>
-<section class="panel projects"><h2>Zapisane projekty <span class="count">{{ projects|length }}</span></h2>
-{% if projects %}<div class="table-wrap"><table><thead><tr><th>Projekt</th><th>Wersja</th><th>Ostatni zapis (UTC)</th><th></th></tr></thead><tbody>
-{% for p in projects %}<tr><td><a href="/p/{{ p.key }}"><strong>{{ p.name }}</strong></a></td><td>{{ p.revision }}</td><td>{{ p.updated_at[:19]|replace('T',' ') }}</td><td><form action="/p/{{ p.key }}/duplicate" method="post"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="quiet" type="submit">Duplikuj</button></form></td></tr>{% endfor %}
-</tbody></table></div>{% else %}<div class="empty"><h3>Jeszcze bez projektów</h3><p>Utwórz pierwszy plan albo importuj przykład z folderu <code>examples</code>.</p></div>{% endif %}
+<section class="panel"><h2>{{ tr("Kopia wszystkich danych") }}</h2><p>{{ tr("Pobierz projekty, pełną historię i bibliotekę szablonów w jednym pliku.") }}</p><a class="button secondary" href="/library/backup.sqlite3">{{ tr("Pobierz pełną kopię zapasową") }}</a><details><summary>{{ tr("Jak odtworzyć kopię?") }}</summary><p>{{ tr('Zatrzymaj aplikację i uruchom ją poleceniem') }} <code>adresplan serve --database {{ tr('ŚCIEŻKA_DO_POBRANEGO_PLIKU') }}</code>. {{ tr('Obecna baza pozostanie zachowana.') }}</p></details></section>
+<section class="panel projects"><h2>{{ tr("Zapisane projekty") }} <span class="count">{{ projects|length }}</span></h2>
+{% if projects %}<div class="table-wrap"><table><thead><tr><th>{{ tr("Projekt") }}</th><th>{{ tr("Wersja") }}</th><th>{{ tr("Ostatni zapis (UTC)") }}</th><th></th></tr></thead><tbody>
+{% for p in projects %}<tr><td><a href="/p/{{ p.key }}"><strong>{{ p.name }}</strong></a></td><td>{{ p.revision }}</td><td>{{ p.updated_at[:19]|replace('T',' ') }}</td><td><form action="/p/{{ p.key }}/duplicate" method="post"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="quiet" type="submit">{{ tr("Duplikuj") }}</button></form></td></tr>{% endfor %}
+</tbody></table></div>{% else %}<div class="empty"><h3>{{ tr("Jeszcze bez projektów") }}</h3><p>{{ tr("Utwórz pierwszy plan albo importuj przykład z folderu") }} <code>examples</code>.</p></div>{% endif %}
 </section>
 {% endblock %}

@@ -1,6 +1,6 @@
 # Projekty przykładowe
 
-Wszystkie dane są syntetyczne. Pliki mają format `schema_version=1` i zawierają wejście projektu bez zapisanej migawki wyniku. Program oblicza wynik po każdym wczytaniu.
+Wszystkie dane są syntetyczne. Pliki zawierają tylko dane wejściowe projektu; program oblicza wynik po każdym wczytaniu.
 
 | Plik | Przypadek | Oczekiwany wynik |
 | --- | --- | --- |
@@ -12,9 +12,9 @@ Wszystkie dane są syntetyczne. Pliki mają format `schema_version=1` i zawieraj
 | `t5-vlan-hex.json` | T5: cyfry VLAN jako hex | VLAN 10 → `…:110::/64`, 20 → `…:120::/64`, 99 → `…:199::/64`; kod 0 |
 | `t5-vlan-110-error.json` | Celowy błąd VLAN 110 w /56 | Błąd offsetu `0x110`, brak tego przydziału IPv6; kod 1 |
 | `church-av.json` | Sieć AV i biura | Syntetyczne audio, obraz, prezentacja, monitoring, goście, zarządzanie, biuro, P2P i loopback; kod 0 |
-| `stage4a_project.json` | Mały przykład z 4A | Trzy segmenty AV, zachowany dla wcześniejszej demonstracji; kod 0 |
+| `stage4a_project.json` | Mały przykład | Trzy segmenty AV; kod 0 |
 
-Wektory T1–T4 mają zerowy zapas oraz brak bram i rezerwacji statycznych, zgodnie z PDF. T5 i przykłady AV mają własne jawne ustawienia. Ostrzeżenia o wysokim wykorzystaniu segmentu nie zmieniają kodu 0, jeśli nie ma błędów.
+Wektory T1–T4 mają zerowy zapas oraz brak bram i rezerwacji statycznych, zgodnie ze specyfikacją. T5 i przykłady AV mają własne jawne ustawienia. Ostrzeżenia o wysokim wykorzystaniu segmentu nie zmieniają kodu 0, jeśli nie ma błędów.
 
 T1–T3 badają płaskie przydziały. Format aplikacji wymaga drzewa, dlatego lokalizacja i budynek są w tych plikach przypięte do całej puli. Dzięki temu adresy segmentów i wolne bloki odpowiadają dokładnie płaskim wektorom. W T2 wolne 539 adresów jest wewnątrz przypiętego budynku; nie należy dodawać do tego zajętości rodziców. W T4 lokalizacja jest przypięta do /20, budynki otrzymują minimalne bloki.
 
@@ -31,7 +31,9 @@ T3 i błąd VLAN 110 są celowo niekompletne. Ich eksport działa, wyraźnie ozn
 
 ## Przykładowe raporty do przejrzenia
 
-- [Sieć AV — Markdown](exports/church-av.md)
+- [Sieć AV — Markdown](exports/church-av.md) · [wersja angielska](exports/church-av.en.md)
+- [Sieć AV — konfiguracja Cisco IOS](exports/church-av-cisco-ios.txt)
+- [Sieć AV — konfiguracja MikroTik](exports/church-av-mikrotik.rsc)
 - [Sieć AV — CSV](exports/church-av.csv)
 - [Hierarchia T4 — Markdown](exports/t4-hierarchy.md)
 - [Hierarchia T4 — CSV](exports/t4-hierarchy.csv)

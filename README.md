@@ -1,6 +1,6 @@
 # Address Plan (AdresPlan)
 
-> **EN:** A local web app for planning IPv4 (VLSM) and IPv6 addressing for multi-building networks. You describe sites, buildings, VLANs and device counts; the app allocates subnets, validates the plan and generates documentation (XLSX, DOCX, CSV, Markdown, JSON, print/PDF). Polish UI, Python + FastAPI + HTMX + SQLite, 750 automated tests. Built with AI coding assistants — see [How it was built](#jak-powstał-projekt).
+> **EN:** A local web app for planning IPv4 (VLSM) and IPv6 addressing for multi-building networks. You describe sites, buildings, VLANs and device counts; the app allocates subnets, validates the plan and generates documentation (XLSX, DOCX, CSV, Markdown, JSON, print/PDF) plus starting gateway configurations for Cisco IOS and MikroTik. Polish and English interface, Python + FastAPI + HTMX + SQLite, 770 automated tests. Built with AI coding assistants — see [How it was built](#jak-powstał-projekt).
 
 Lokalna aplikacja do planowania adresacji IPv4 (VLSM) i IPv6 w sieciach z kilkoma lokalizacjami, budynkami i VLAN-ami. Podajesz strukturę sieci i liczbę urządzeń, a program przydziela podsieci, sprawdza błędy i przygotowuje gotową dokumentację.
 
@@ -25,7 +25,8 @@ Address Plan robi to automatycznie:
 - **Historia i porównywanie wersji**, szablony budynków, blokady zajętych podsieci, diagram hierarchii (SVG).
 - **Kalkulator podsieci** IPv4/IPv6.
 - **Eksport**: XLSX, DOCX, CSV, Markdown, JSON (import i eksport) oraz widok do druku/PDF.
-- **Interfejs po polsku**, jasny i ciemny motyw, praca w całości na własnym komputerze, bez chmury.
+- **Konfiguracja startowa Cisco IOS i MikroTik**: VLAN-y, bramy, DHCP i loopbacki wygenerowane z planu.
+- **Interfejs po polsku i angielsku** (przełącznik PL / EN, także w CLI i raportach), jasny i ciemny motyw, praca w całości na własnym komputerze, bez chmury.
 
 | Diagram hierarchii | Eksport do Excela |
 | --- | --- |
@@ -54,7 +55,7 @@ Następnie otwórz **http://127.0.0.1:8000**. Gotowe przykłady do importu są w
 
 Na Linuksie i macOS zamiast `.\.venv\Scripts\` użyj `.venv/bin/`. Można też uruchomić aplikację w Dockerze: `docker compose up --build`.
 
-Aplikacja ma także wiersz poleceń (`adresplan plan`, `calc`, `freeze`, `export`), opisany w [instrukcji CLI](docs/cli.md).
+Aplikacja ma także wiersz poleceń (`adresplan plan`, `calc`, `freeze`, `export`), opisany w [instrukcji CLI](docs/cli.md). Wersję angielską włączysz opcją `--lang en`.
 
 ## Przykład
 
@@ -67,11 +68,11 @@ Pula `192.168.10.0/24` i cztery segmenty o 100, 50, 25 i 10 urządzeniach:
 | C | 25 | 192.168.10.192/27 | 192.168.10.193–192.168.10.222 |
 | D | 10 | 192.168.10.224/28 | 192.168.10.225–192.168.10.238 |
 
-Wolny zostaje blok `192.168.10.240/28`. Przykładowe gotowe raporty: [Markdown](examples/exports/church-av.md), [Excel](examples/exports/church-av.xlsx), [Word](examples/exports/church-av.docx).
+Wolny zostaje blok `192.168.10.240/28`. Przykładowe gotowe pliki: [raport Markdown](examples/exports/church-av.md) ([EN](examples/exports/church-av.en.md)), [Excel](examples/exports/church-av.xlsx), [Word](examples/exports/church-av.docx), [konfiguracja Cisco](examples/exports/church-av-cisco-ios.txt), [konfiguracja MikroTik](examples/exports/church-av-mikrotik.rsc).
 
 ## Jakość
 
-- **750 testów automatycznych**: przykłady referencyjne, testy właściwościowe (Hypothesis) sprawdzające m.in. brak nakładania się podsieci, testy CLI, eksportów, bazy i interfejsu HTTP.
+- **770 testów automatycznych**: przykłady referencyjne, testy właściwościowe (Hypothesis) sprawdzające m.in. brak nakładania się podsieci, testy CLI, eksportów, bazy, interfejsu HTTP i kompletności tłumaczeń.
 - Kontrola typów **mypy w trybie strict** i linter **Ruff** bez błędów.
 - CI w GitHub Actions: Linux (Python 3.11 i 3.12), Windows, budowa paczki i test kontenera Docker.
 
@@ -100,16 +101,18 @@ Pełny zapis przebiegu prac jest w folderze [docs/historia](docs/historia/README
 src/adresplan/
   core/         obliczenia sieciowe (czysty Python, bez bazy i interfejsu)
   application/  import/eksport JSON, historia, szablony
-  export/       CSV, Markdown, XLSX, DOCX, diagram SVG
+  export/       CSV, Markdown, XLSX, DOCX, diagram SVG, konfiguracja Cisco/MikroTik
   store/        zapis w SQLite
-  web/          interfejs FastAPI + HTMX
+  web/          interfejs FastAPI + HTMX (trasy w web/routes/)
+  locale/       angielskie tłumaczenia (en.json)
+  i18n.py       wybór języka i funkcja tr()
   cli.py        wiersz poleceń
 tests/          testy automatyczne
 examples/       przykładowe projekty i raporty
 docs/           dokumentacja
 ```
 
-Więcej: [architektura](docs/architecture.md) · [instrukcja szczegółowa](docs/instrukcja.md) · [interfejs i API](docs/web.md) · [eksporty](docs/exports.md) · [format JSON](docs/json-format.md) · [historia zmian](CHANGELOG.md).
+Więcej: [architektura](docs/architecture.md) · [przewodnik użytkownika](docs/instrukcja.md) · [interfejs i API](docs/web.md) · [eksporty](docs/exports.md) · [format JSON](docs/json-format.md) · [historia zmian](CHANGELOG.md).
 
 ## Licencja
 

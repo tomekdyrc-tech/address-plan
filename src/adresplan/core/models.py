@@ -150,12 +150,6 @@ class Project:
         return self.v6_active and self.v6_prefix is not None
 
     @property
-    def ipv6_description(self) -> str:
-        if not self.v6_active:
-            return "Wyłączone (konfiguracja zachowana)" if self.v6_prefix else "Wyłączone"
-        return str(self.v6_prefix) if self.v6_prefix else "—"
-
-    @property
     def active_blocked_subnets(self) -> tuple[BlockedSubnet, ...]:
         return tuple(b for b in self.blocked_subnets if b.network.version == 4 or self.uses_ipv6)
 

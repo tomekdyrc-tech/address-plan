@@ -2,6 +2,7 @@
 
 Ten folder zawiera dokumenty robocze z budowy aplikacji. Nie są potrzebne do korzystania z programu, ale pokazują, jak projekt był prowadzony: od specyfikacji, przez plan etapów, po odbiór każdego etapu i audyt.
 
+- [CHANGELOG-szczegolowy.md](CHANGELOG-szczegolowy.md) — pełny dziennik zmian z każdego etapu.
 - [SPEC.md](SPEC.md) — specyfikacja wymagań, od której zaczął się projekt.
 - [PLAN.md](PLAN.md) — plan realizacji, decyzje projektowe i kryteria odbioru etapów.
 - `stage-*-verification.md` — odbiór kolejnych etapów: co sprawdzono i z jakim wynikiem.

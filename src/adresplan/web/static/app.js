@@ -1,4 +1,27 @@
 "use strict";
+// Messages use Polish source text; the server sets <html lang>, English pages translate here.
+const MESSAGES_EN = {
+  "Podgląd jest aktualny. Możesz zatwierdzić zmiany.": "The preview is up to date. You can apply the changes.",
+  "Trwa przeliczanie lub dane wymagają poprawy. Zatwierdzenie będzie dostępne po aktualizacji podglądu.": "Recalculating, or the data needs correcting. Applying becomes available once the preview is updated.",
+  "Podgląd — niezapisane zmiany": "Preview — unsaved changes",
+  "Oczekuje na zapis…": "Waiting to save…",
+  "Zapisano · wersja {revision}": "Saved · version {revision}",
+  "Nie zapisano — sprawdź komunikat poniżej": "Not saved — see the message below",
+  "Nowy segment": "New segment",
+  "Nowy budynek": "New building",
+  "Nowa lokalizacja": "New site",
+  "Widoczne elementy: {count}. Filtr zmienia tylko widok; wszystkie dane są zachowywane przy zapisie.": "Visible items: {count}. The filter only changes the view; all data is kept when saving.",
+  "{name} · przypięcia i ustawienia szczegółowe": "{name} · pins and detailed settings",
+  "Zatwierdź podgląd przed zapisaniem szablonu": "Apply the preview before saving a template",
+  "Skopiowano {value}": "Copied {value}",
+  "Nie udało się skopiować. Zaznacz adres i użyj Ctrl+C.": "Copy failed. Select the address and press Ctrl+C.",
+};
+const ENGLISH = document.documentElement?.lang === "en";
+function t(text, values = {}) {
+  let result = ENGLISH ? MESSAGES_EN[text] ?? text : text;
+  for (const [key, value] of Object.entries(values)) result = result.replace(`{${key}}`, value);
+  return result;
+}
 let editGeneration = 0;
 let savedGeneration = 0;
 let previewGeneration = null;
@@ -10,8 +33,8 @@ function previewControls() {
   const current = previewGeneration === editGeneration && projectRequests === 0;
   button.disabled = !current;
   document.querySelector("#preview-status").textContent = current
-    ? "Podgląd jest aktualny. Możesz zatwierdzić zmiany."
-    : "Trwa przeliczanie lub dane wymagają poprawy. Zatwierdzenie będzie dostępne po aktualizacji podglądu.";
+    ? t("Podgląd jest aktualny. Możesz zatwierdzić zmiany.")
+    : t("Trwa przeliczanie lub dane wymagają poprawy. Zatwierdzenie będzie dostępne po aktualizacji podglądu.");
 }
 
 // HTMX replaces results only during ordinary edits; inputs retain focus and pending changes.
@@ -71,8 +94,8 @@ document.addEventListener("htmx:afterRequest", (event) => {
     const preview = event.detail.xhr.getResponseHeader("X-Plan-Preview") === "1";
     previewGeneration = preview ? event.detail.xhr.editGeneration : null;
     if (!preview) savedGeneration = event.detail.xhr.editGeneration ?? savedGeneration;
-    if (badge) badge.textContent = preview ? "Podgląd — niezapisane zmiany" : editGeneration > savedGeneration
-      ? "Oczekuje na zapis…" : `Zapisano · wersja ${form.elements.revision.value}`;
+    if (badge) badge.textContent = preview ? t("Podgląd — niezapisane zmiany") : editGeneration > savedGeneration
+      ? t("Oczekuje na zapis…") : t("Zapisano · wersja {revision}", {revision: form.elements.revision.value});
     const title = document.querySelector(".tree-root")?.textContent;
     if (title) {
       document.querySelector("h1").textContent = title;
@@ -80,7 +103,7 @@ document.addEventListener("htmx:afterRequest", (event) => {
     }
   } else {
     previewGeneration = null;
-    if (badge) badge.textContent = "Nie zapisano — sprawdź komunikat poniżej";
+    if (badge) badge.textContent = t("Nie zapisano — sprawdź komunikat poniżej");
   }
   previewControls();
 });
@@ -91,7 +114,7 @@ function pendingEdit(event) {
   editGeneration += 1;
   previewControls();
   const badge = document.querySelector("#save-status");
-  if (badge) badge.textContent = "Oczekuje na zapis…";
+  if (badge) badge.textContent = t("Oczekuje na zapis…");
 }
 document.addEventListener("change", pendingEdit);
 document.addEventListener("input", pendingEdit);
@@ -145,7 +168,7 @@ function parentChoices() {
       label.hidden = kind.value !== "segment";
       label.querySelector("input").disabled = label.hidden;
     });
-    const names = {segment: "Nowy segment", building: "Nowy budynek", site: "Nowa lokalizacja"};
+    const names = {segment: t("Nowy segment"), building: t("Nowy budynek"), site: t("Nowa lokalizacja")};
     if (Object.values(names).includes(form.elements.new_name.value)) form.elements.new_name.value = names[kind.value];
   };
   if (!kind.dataset.parentChoicesBound) {
@@ -179,17 +202,17 @@ document.addEventListener("htmx:afterRequest", ipv6Controls);
 function applyStructureFilter() {
   const panel = document.querySelector("#view-filters");
   if (!panel) return;
-  const query = panel.querySelector("#structure-query").value.trim().toLocaleLowerCase("pl");
+  const query = panel.querySelector("#structure-query").value.trim().toLocaleLowerCase(ENGLISH ? "en" : "pl");
   const scope = panel.querySelector("#structure-scope").value;
   const visible = new Set();
   document.querySelectorAll("[data-filter-node]").forEach((row) => {
     const inside = !scope || row.dataset.filterScope.split(" ").includes(scope);
-    row.hidden = !inside || !row.dataset.filterSearch.toLocaleLowerCase("pl").includes(query);
+    row.hidden = !inside || !row.dataset.filterSearch.toLocaleLowerCase(ENGLISH ? "en" : "pl").includes(query);
     if (!row.hidden) visible.add(row.dataset.filterNode);
   });
   document.querySelectorAll("[data-filter-detail]").forEach((row) => { row.hidden = !visible.has(row.dataset.filterDetail); });
   document.querySelectorAll("[data-filter-result]").forEach((row) => { row.hidden = !visible.has(row.dataset.filterResult); });
-  panel.querySelector("#filter-status").textContent = `Widoczne elementy: ${visible.size}. Filtr zmienia tylko widok; wszystkie dane są zachowywane przy zapisie.`;
+  panel.querySelector("#filter-status").textContent = t("Widoczne elementy: {count}. Filtr zmienia tylko widok; wszystkie dane są zachowywane przy zapisie.", {count: visible.size});
   try { sessionStorage.setItem(`address-plan-view-${panel.dataset.projectKey}`, JSON.stringify({query,scope})); } catch {}
 }
 function clearStructureFilter() {
@@ -216,7 +239,7 @@ function bindStructureFilter() {
     }
     const detail = details.get(data.dataset.derivedNode);
     if (detail) {
-      detail.querySelector("summary").textContent = `${data.dataset.name} · przypięcia i ustawienia szczegółowe`;
+      detail.querySelector("summary").textContent = t("{name} · przypięcia i ustawienia szczegółowe", {name: data.dataset.name});
       const explanation = detail.querySelector("[data-sizing-explanation]");
       if (explanation) explanation.textContent = data.dataset.explanation;
     }
@@ -251,7 +274,7 @@ function reviewControls() {
   const reviewing = form.elements.planning_mode.value === "review";
   form.querySelectorAll('button[value^="template-save:"],button[value^="site-template-save:"]').forEach((button) => {
     button.disabled = reviewing;
-    button.title = reviewing ? "Zatwierdź podgląd przed zapisaniem szablonu" : "";
+    button.title = reviewing ? t("Zatwierdź podgląd przed zapisaniem szablonu") : "";
   });
 }
 document.addEventListener("DOMContentLoaded", bindStructureFilter);
@@ -348,9 +371,9 @@ document.addEventListener("click", async (event) => {
   if (!button) return;
   try {
     await navigator.clipboard.writeText(button.dataset.copy);
-    document.querySelector("#copy-status").textContent = `Skopiowano ${button.dataset.copy}`;
+    document.querySelector("#copy-status").textContent = t("Skopiowano {value}", {value: button.dataset.copy});
   } catch {
-    document.querySelector("#copy-status").textContent = "Nie udało się skopiować. Zaznacz adres i użyj Ctrl+C.";
+    document.querySelector("#copy-status").textContent = t("Nie udało się skopiować. Zaznacz adres i użyj Ctrl+C.");
   }
 });
 

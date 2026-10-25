@@ -35,11 +35,11 @@ def validate_blocks(project: Project, family: int) -> tuple[Finding, ...]:
             or int(block.network.network_address) < int(pool.network_address)
             or int(block.network.broadcast_address) > int(pool.broadcast_address)
         ):
-            reason = "Blokada musi mieścić się w puli projektu tej samej rodziny."
+            reason = "a blocked subnet must fit in the project pool of the same family"
         elif block.parent_id is not None and (
             block.parent_id not in nodes or nodes[block.parent_id].kind is NodeKind.SEGMENT
         ):
-            reason = "Blokadę przypisz do projektu, lokalizacji albo budynku."
+            reason = "a blocked subnet must belong to the project, a site or a building"
         if reason:
             findings.append(
                 Finding(

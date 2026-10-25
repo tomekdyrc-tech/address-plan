@@ -1,30 +1,27 @@
-# Korzystanie z CLI — część 4B
+# Wiersz poleceń (CLI)
 
-Stan: 16.10.2026, wersja `1.1.0`. Dostępne są `plan`, `calc`, `freeze`, `export` i `serve`. Eksporty CSV/Markdown/JSON/XLSX/DOCX opisuje [exports.md](exports.md); uruchomienie przeglądarki i SQLite opisuje [web.md](web.md).
-
-## Pierwsze uruchomienie
-
-Polecenia wykonuj w głównym folderze projektu, po instalacji opisanej w README. Nie trzeba aktywować środowiska Pythona.
+Polecenie `adresplan` ma pięć podpoleceń: `plan`, `calc`, `freeze`, `export` i `serve`. Każde ma własną pomoc, np. `adresplan calc --help`. Przykłady zakładają Windows i instalację z [przewodnika](instrukcja.md); na Linuksie i macOS użyj `.venv/bin/adresplan`.
 
 ```powershell
 .\.venv\Scripts\adresplan.exe --help
 .\.venv\Scripts\adresplan.exe --version
-.\.venv\Scripts\adresplan.exe plan examples/stage4a_project.json
 ```
 
-Każde polecenie ma własną pomoc, np. `.\.venv\Scripts\adresplan.exe calc --help`. Alternatywna forma uruchomienia to `.\.venv\Scripts\python.exe -m adresplan ...`. Samo uruchomienie bez argumentów pokazuje pomoc.
+## Język
 
-Wymagana wiedza: podstawy CIDR, masek i VLAN-ów. CLI operuje na plikach JSON; od etapu 5 listę segmentów możesz też zmieniać w interfejsie uruchamianym przez `serve`. Przykład jest syntetyczny i nie opisuje prawdziwej sieci zboru.
+Komunikaty, pomoc i raporty są domyślnie po polsku. Wersję angielską włączysz opcją `--lang en` (w dowolnym miejscu polecenia) albo zmienną środowiskową `ADRESPLAN_LANG=en`:
 
-## Plan z projektu
+```powershell
+.\.venv\Scripts\adresplan.exe --lang en plan examples/church-av.json
+```
+
+## plan — oblicz plan z pliku projektu
 
 ```powershell
 .\.venv\Scripts\adresplan.exe plan examples/stage4a_project.json
-.\.venv\Scripts\adresplan.exe plan examples/stage4a_project.json --show-free
-.\.venv\Scripts\adresplan.exe plan examples/stage4a_project.json --verbose
 ```
 
-Wynik zawiera status kompletności, lokalizacje/budynki/segmenty, VLAN-y i CIDR obu protokołów. Niżej są bramy, zakresy statyczne i DHCP, informacje IPv6, infrastruktura oraz metryki dla każdego poziomu osobno. Przykład AV daje:
+Wynik pokazuje status, drzewo lokalizacji, budynków i segmentów z VLAN-ami i adresami obu protokołów, a niżej bramy, zakresy statyczne i DHCP, informacje IPv6 i wykorzystanie pul. Dla przykładu AV:
 
 | Segment | IPv4 | IPv6 |
 | --- | --- | --- |
@@ -32,77 +29,36 @@ Wynik zawiera status kompletności, lokalizacje/budynki/segmenty, VLAN-y i CIDR 
 | Obraz | 10.42.0.32/27 | 2001:db8:42:101::/64 |
 | Zarządzanie | 10.42.0.64/28 | 2001:db8:42:102::/64 |
 
-Ostrzeżenie o wykorzystaniu segmentu Dźwięk jest oczekiwane: 20 urządzeń, 25% zapasu i jedna brama wymagają 26 z 30 użytecznych adresów. Plan jest kompletny, więc polecenie kończy się kodem 0.
+Opcje:
 
-`--show-free` pokazuje wszystkie wolne bloki wraz z rodzicem i rodzajem puli. Domyślnie widać ich liczbę i metryki. Wolne miejsce budynku, lokalizacji i projektu nie jest jedną sumowaną pulą; te same adresy mogą być opisywane na różnych poziomach hierarchii. Brak przydziału oznaczamy kreską, a niekompletny plan ma widoczny status i kod zakończenia 1.
+- `--show-free` — lista wszystkich wolnych bloków.
+- `--verbose` — także komunikaty informacyjne (domyślnie tylko błędy i ostrzeżenia).
+- `--json` — sam dokument JSON na wyjściu; komunikaty idą na stderr.
+- `-o PLIK` / `--output PLIK` — zapis projektu z wynikiem do pliku JSON. Folder musi istnieć; istniejący plik jest zastępowany w całości.
 
-`--verbose` dodaje komunikaty informacyjne, m.in. o blokach sumarycznych i ciągłości wolnej puli. Bez tej flagi na stderr są tylko błędy i ostrzeżenia.
+Plan z błędami też można zapisać i dalej poprawiać.
 
-## Zapis wyniku jako JSON
-
-Najpierw utwórz katalog wyników:
-
-```powershell
-New-Item -ItemType Directory -Force output | Out-Null
-.\.venv\Scripts\adresplan.exe plan examples/stage4a_project.json --output output/plan.json
-.\.venv\Scripts\adresplan.exe plan output/plan.json
-```
-
-`--output`/`-o` zapisuje pełne dane wejściowe i świeży wynik w formacie z 4A. Katalog docelowy musi istnieć; istniejący plik pod wskazaną ścieżką jest zastępowany atomowo. Projekt źródłowy pozostaje bez zmian, chyba że jawnie podasz tę samą ścieżkę jako wynikową.
+## freeze — zamroź adresy
 
 ```powershell
-.\.venv\Scripts\adresplan.exe plan examples/stage4a_project.json --json
+.\.venv\Scripts\adresplan.exe freeze examples/stage4a_project.json -o output/zamrozony.json
 ```
 
-`--json` wypisuje na stdout wyłącznie dokument JSON, również przy ostrzeżeniach lub niekompletnym planie. Komunikaty trafiają na stderr. Do zapisu pliku używaj `--output`; omija to różnice kodowania przy przekierowaniu wyjścia przez różne wersje PowerShell. Oba strumienie programu używają UTF-8.
+Zapisuje obecne przydziały jako przypięcia (`pinned_v4`, `pinned_v6`) razem z infrastrukturą IPv6. Plik wynikowy jest wymagany. Plan z błędami nie zostanie zamrożony, a plik docelowy pozostanie bez zmian.
 
-Niekompletny plan można zapisać, aby go poprawić; `plan` nadal zwróci kod 1. Przy imporcie program nie ufa zapisanej tabeli `plan`, tylko przelicza dane z `project`. Szczegóły: [format JSON](json-format.md).
-
-## Zamrożenie adresacji
-
-```powershell
-.\.venv\Scripts\adresplan.exe freeze examples/stage4a_project.json --output output/zamrozony.json
-.\.venv\Scripts\adresplan.exe plan output/zamrozony.json
-```
-
-`freeze` wymaga jawnego pliku wynikowego. Zapisuje istniejące przydziały w `pinned_v4`/`pinned_v6` oraz przypięcie całej infrastruktury IPv6. Po dodaniu segmentu dotychczasowe adresy pozostają przypięte; nowy segment musi zmieścić się w wolnym miejscu. Rodzice nie rosną automatycznie po zamrożeniu.
-
-Jeśli plan ma błędy, polecenie zwraca 1 i nie tworzy ani nie zmienia pliku docelowego. Ostrzeżenia nie blokują zamrożenia. Podanie tej samej ścieżki wejścia i wyjścia jest dozwolone jako jawny zapis w miejscu; ponowne zamrożenie tego samego projektu nie zmienia jego treści.
-
-## Kalkulator IPv4
+## calc — kalkulator podsieci
 
 ```powershell
 .\.venv\Scripts\adresplan.exe calc 192.168.1.10/24
 .\.venv\Scripts\adresplan.exe calc 192.168.1.10 255.255.255.0
-.\.venv\Scripts\adresplan.exe calc "192.168.1.10 0.0.0.255"
-```
-
-Wszystkie trzy zapisy opisują tę samą sieć `192.168.1.0/24`. Kalkulator zachowuje wejściowy adres hosta i wylicza sieć przez `ip_interface(...).network`. W przeciwieństwie do pól sieci projektu, tutaj ustawione bity hosta są normalnym wejściem.
-
-Wynik pokazuje sieć, prefiks, maskę, wildcard, maskę binarną, broadcast, pierwszy/ostatni użyteczny adres, liczbę użytecznych adresów, przynależność całego bloku do RFC 1918 i dane reverse DNS. Zapis `adres/maska` oraz `adres/wildcard` także jest obsługiwany.
-
-- `/31`: dwa końce łącza, oba adresy użyteczne; brak broadcastu.
-- `/32`: jeden adres hosta; brak broadcastu.
-- Sam adres bez prefiksu: trasa hosta `/32`.
-- Pula dokumentacyjna, CGNAT lub loopback nie jest oznaczana jako RFC 1918.
-
-Pojedynczą zwykłą strefę `in-addr.arpa` pokazujemy dla /8, /16 i /24. Dla np. /20 potrzebne są strefy na granicach oktetów; program nie wymyśla jednej nazwy strefy /20. Delegacje bezklasowe są poza zakresem. Nazwa PTR wejściowego adresu jest pokazywana oddzielnie i nie oznacza, że taki rekord istnieje w DNS.
-
-## Kalkulator IPv6
-
-```powershell
 .\.venv\Scripts\adresplan.exe calc 2001:db8:abcd::/48
-.\.venv\Scripts\adresplan.exe calc 2001:db8:abcd:1234::beef/56
-.\.venv\Scripts\adresplan.exe calc fe80::1/64
 ```
 
-Wynik pokazuje skróconą i rozwiniętą postać adresu oraz sieci, typ adresu i całego bloku, dokładną liczbę adresów, liczbę podsieci /64, strefę `ip6.arpa` i nazwę PTR. Nie pokazuje broadcastu.
+Dla IPv4 kalkulator pokazuje sieć, maskę, wildcard, maskę binarną, broadcast, pierwszy i ostatni adres, liczbę adresów, przynależność do RFC 1918 i dane reverse DNS. Przyjmuje zapis z prefiksem, maską albo wildcardem. Sieci /31 mają dwa użyteczne adresy, a /32 jeden; żadna nie ma broadcastu.
 
-Typy to dokumentacyjny, GUA, ULA, link-local, multicast, loopback, nieokreślony, mieszany i inny. Dla szerokiego bloku obejmującego różne kategorie typ bloku jest mieszany, nawet gdy konkretny adres wejściowy ma jeden typ. Rozpoznawanie GUA dotyczy zakresu `2000::/3` z osobnym rozpoznaniem dokumentacyjnego `2001:db8::/32`; nie jest sprawdzaniem routingu w Internecie. Kalkulator rozpoznaje ULA `fc00::/7`; planer projektu nadal wymaga lokalnie nadanej ULA `fd00::/8`.
+Dla IPv6 pokazuje formę skróconą i rozwiniętą, typ adresu (np. GUA, ULA, link-local, dokumentacyjny), liczbę adresów i podsieci /64 oraz strefę `ip6.arpa`. Kalkulator niczego nie wysyła do sieci.
 
-W /48 jest 65 536 podsieci /64, w /56 jest ich 256, w /127 i /128 — zero. Strefa IPv6 wymaga prefiksu wyrównanego do 4 bitów. Dla /127 program pokazuje brak pojedynczej strefy i osobno nazwę PTR wejściowego adresu. Sam adres IPv6 bez prefiksu jest traktowany jako /128. Zapisy z `%interfejsu` nie są obsługiwane. Kalkulator nie wykonuje zapytań DNS ani żadnych innych operacji sieciowych.
-
-## Podział na podsieci
+### Podział na równe podsieci
 
 ```powershell
 .\.venv\Scripts\adresplan.exe calc 192.168.1.0/24 --split 4
@@ -110,26 +66,37 @@ W /48 jest 65 536 podsieci /64, w /56 jest ich 256, w /127 i /128 — zero. Stre
 .\.venv\Scripts\adresplan.exe calc 2001:db8::/48 --new-prefix 64 --limit 4
 ```
 
-Dwa pierwsze polecenia dają cztery podsieci /26: `.0`, `.64`, `.128`, `.192`. Trzecie ma 65 536 wynikowych /64, ale pokazuje tylko cztery pierwsze.
+- `--split N` — N równych części; N musi być potęgą dwójki (dla 3 program podpowie 4).
+- `--new-prefix X` — podsieci o długości /X.
+- `--limit` — ile wierszy pokazać (1–256, domyślnie 256).
 
-- `--split N`: N musi być dodatnią potęgą dwójki. Dla 3 program proponuje 4 i kończy się błędem 2, czekając na poprawione polecenie.
-- `--new-prefix X`: podaj liczbę bez ukośnika, np. `64`. Prefiks nie może być krótszy od wejściowego ani przekraczać 32/128 dla danej rodziny.
-- Wybierz tylko jeden tryb podziału. N=1 lub prefiks równy wejściowemu daje ten sam pojedynczy blok.
-- `--limit`: od 1 do 256, domyślnie 256; wymaga włączenia podziału.
+Liczba wszystkich podsieci jest zawsze podana dokładnie, nawet gdy podgląd jest skrócony.
 
-Podgląd jest leniwy i ograniczony. Nawet podział `::/0` na /128 nie tworzy listy całej przestrzeni adresów. Liczba wynikowych podsieci jest pokazywana dokładnie, a ograniczenie podglądu jest jawne.
+## export — dokumenty i konfiguracja
 
-## Błędy i kody zakończenia
+```powershell
+.\.venv\Scripts\adresplan.exe export examples/church-av.json -f md -o output/plan.md
+.\.venv\Scripts\adresplan.exe export examples/church-av.json -f xlsx -o output/plan.xlsx
+.\.venv\Scripts\adresplan.exe export examples/church-av.json -f cisco
+```
+
+Formaty: `csv`, `md`, `json`, `xlsx`, `docx`, `cisco`, `mikrotik`. Bez `-o` tekst trafia na ekran; Excel i Word wymagają pliku. Opis zawartości: [eksporty](exports.md).
+
+## serve — interfejs w przeglądarce
+
+```powershell
+.\.venv\Scripts\adresplan.exe serve --port 8080 --database data/projekty.sqlite3
+```
+
+Opcje i działanie interfejsu: [interfejs w przeglądarce](web.md).
+
+## Kody zakończenia
 
 | Kod | Znaczenie |
 | --- | --- |
-| 0 | Sukces; same ostrzeżenia nie blokują wyniku |
-| 1 | Niekompletny plan albo odmowa zamrożenia planu z błędami |
-| 2 | Błędne argumenty, dane JSON, wejście kalkulatora lub błąd odczytu/zapisu |
-| 130 | Przerwanie przez użytkownika podczas wykonywania polecenia |
+| 0 | Sukces (ostrzeżenia nie blokują wyniku) |
+| 1 | Plan niekompletny albo odmowa zamrożenia planu z błędami |
+| 2 | Błędne argumenty, dane JSON lub błąd odczytu/zapisu pliku |
+| 130 | Przerwanie przez użytkownika |
 
-W PowerShell kod ostatniego programu odczytasz przez `$LASTEXITCODE`. Błąd zawiera polski opis, trwały kod diagnostyczny i — gdy dotyczy węzła — jego ID oraz nazwę. Brak miejsca zawiera dostępne oszacowania pojemności i sugestię prefiksu; program nie zmienia puli automatycznie.
-
-Błąd JSON wskazuje pole, np. `project.nodes[2].hosts`. Typowe pomyłki nie pokazują stosu wywołań Pythona. Tekstowe nazwy i opisy są zabezpieczone przed wstrzyknięciem znaków sterujących terminala; zapis JSON zachowuje ich oryginalną treść.
-
-Źródło zachowania masek, hostów /31 i /32 oraz interfejsów: [dokumentacja Python 3.12 — ipaddress](https://docs.python.org/3.12/library/ipaddress.html). Pomoc i argumenty korzystają z [argparse](https://docs.python.org/3.12/library/argparse.html).
+W PowerShell kod ostatniego polecenia odczytasz z `$LASTEXITCODE`. Komunikat błędu wskazuje pole, np. `project.nodes[2].hosts`, oraz stały kod diagnostyczny. Nazwy z pliku są oczyszczane ze znaków sterujących terminala.

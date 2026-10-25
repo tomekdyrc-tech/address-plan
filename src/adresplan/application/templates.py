@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from adresplan.application.project_json import InputIssue, ProjectJSONError, loads_project
 from adresplan.core.models import Project
+from adresplan.i18n import tr
 from adresplan.store.sqlite import input_document
 
 
@@ -15,7 +16,7 @@ def building_template(project: Project, building_id: str) -> dict[str, Any]:
         (n for n in data["nodes"] if n["id"] == building_id and n["kind"] == "building"), None
     )
     if root is None:
-        raise ProjectJSONError((InputIssue((), "building", "Wybierz istniejący budynek."),))
+        raise ProjectJSONError((InputIssue((), "building", tr("Wybierz istniejący budynek.")),))
     nodes = [dict(root), *(dict(n) for n in data["nodes"] if n["parent_id"] == building_id)]
     for node in nodes:
         node["pinned_v4"] = node["pinned_v6"] = None
@@ -36,7 +37,7 @@ def apply_template(project: Project, template: dict[str, Any], site_id: str, nam
     data = input_document(project)
     target = next((n for n in project.nodes if n.id == site_id and n.kind == "site"), None)
     if target is None:
-        raise ProjectJSONError((InputIssue((), "site", "Wybierz lokalizację docelową."),))
+        raise ProjectJSONError((InputIssue((), "site", tr("Wybierz lokalizację docelową.")),))
     building_id = uuid4().hex
     root = {**template["building"], "id": building_id, "parent_id": site_id, "name": name}
     root["pinned_v4"] = root["pinned_v6"] = None
@@ -58,7 +59,7 @@ def site_template(project: Project, site_id: str) -> dict[str, Any]:
     """Capture all buildings in a location without address assignments."""
     site = next((n for n in project.nodes if n.id == site_id and n.kind == "site"), None)
     if site is None:
-        raise ProjectJSONError((InputIssue((), "site", "Wybierz istniejącą lokalizację."),))
+        raise ProjectJSONError((InputIssue((), "site", tr("Wybierz istniejącą lokalizację.")),))
     return {
         "site": {"name": site.name, "notes": site.notes},
         "buildings": [
@@ -74,7 +75,11 @@ def apply_site_template(project: Project, template: dict[str, Any], names: str) 
     labels = [line.strip() for line in names.splitlines() if line.strip()]
     if not 1 <= len(labels) <= 50:
         raise ProjectJSONError(
-            (InputIssue((), "sites", "Podaj od 1 do 50 nazw lokalizacji, po jednej w wierszu."),)
+            (
+                InputIssue(
+                    (), "sites", tr("Podaj od 1 do 50 nazw lokalizacji, po jednej w wierszu.")
+                ),
+            )
         )
     for label in labels:
         site_id = uuid4().hex
@@ -114,11 +119,11 @@ def starter_templates() -> dict[str, dict[str, Any]]:
         ),
     ):
         recipes[key] = {
-            "building": {"kind": "building", "name": title},
+            "building": {"kind": "building", "name": tr(title)},
             "segments": [
                 {
                     "kind": "segment",
-                    "name": name,
+                    "name": tr(name),
                     "hosts": hosts,
                     "vlan_id": vlan,
                     "role": "mgmt" if vlan == 99 else "lan",

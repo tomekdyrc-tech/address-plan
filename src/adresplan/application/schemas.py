@@ -33,13 +33,14 @@ from adresplan.core.models import (
     Segment,
     SegmentRole,
 )
+from adresplan.i18n import tr
 
 SCHEMA_VERSION = 3
 
 
 def _nonblank(value: str) -> str:
     if not value.strip():
-        raise PydanticCustomError("blank_string", "Wartość nie może być pusta.")
+        raise PydanticCustomError("blank_string", tr("Wartość nie może być pusta."))
     return value
 
 
@@ -48,7 +49,7 @@ def _utf8_text(value: str) -> str:
         value.encode("utf-8")
     except UnicodeError as error:
         raise PydanticCustomError(
-            "invalid_utf8_text", "Tekst zawiera nieprawidłowy znak Unicode."
+            "invalid_utf8_text", tr("Tekst zawiera nieprawidłowy znak Unicode.")
         ) from error
     return value
 
@@ -57,12 +58,12 @@ def _v4_network(value: object) -> IPv4Network:
     if isinstance(value, IPv4Network):
         return value
     if not isinstance(value, str) or "/" not in value:
-        raise PydanticCustomError("cidr_v4", "Podaj sieć IPv4 z prefiksem, np. 10.0.0.0/24.")
+        raise PydanticCustomError("cidr_v4", tr("Podaj sieć IPv4 z prefiksem, np. 10.0.0.0/24."))
     try:
         return IPv4Network(value, strict=True)
     except ValueError as error:
         raise PydanticCustomError(
-            "cidr_v4", "Nieprawidłowa sieć IPv4 lub ustawione bity hosta."
+            "cidr_v4", tr("Nieprawidłowa sieć IPv4 lub ustawione bity hosta.")
         ) from error
 
 
@@ -70,12 +71,12 @@ def _v6_network(value: object) -> IPv6Network:
     if isinstance(value, IPv6Network) and value.network_address.scope_id is None:
         return value
     if not isinstance(value, str) or "/" not in value or "%" in value:
-        raise PydanticCustomError("cidr_v6", "Podaj sieć IPv6 z prefiksem, np. 2001:db8::/48.")
+        raise PydanticCustomError("cidr_v6", tr("Podaj sieć IPv6 z prefiksem, np. 2001:db8::/48."))
     try:
         return IPv6Network(value, strict=True)
     except ValueError as error:
         raise PydanticCustomError(
-            "cidr_v6", "Nieprawidłowa sieć IPv6 lub ustawione bity hosta."
+            "cidr_v6", tr("Nieprawidłowa sieć IPv6 lub ustawione bity hosta.")
         ) from error
 
 

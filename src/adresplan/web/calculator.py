@@ -12,6 +12,7 @@ from adresplan.application.project_json import loads_project
 from adresplan.core.allocator import allocate
 from adresplan.core.calc import CalculationError, calculate, preview_subnets
 from adresplan.core.models import AllocationRequest, Project
+from adresplan.i18n import tr
 
 
 def calculator_context(form: FormData) -> dict[str, Any]:
@@ -22,23 +23,27 @@ def calculator_context(form: FormData) -> dict[str, Any]:
     if mode == "vlsm":
         if not isinstance(result.network, IPv4Network):
             raise ValueError(
-                "Plan według liczby urządzeń obsługuje IPv4. Dla IPv6 wybierz równy podział."
+                tr("Plan według liczby urządzeń obsługuje IPv4. Dla IPv6 wybierz równy podział.")
             )
         names, counts = form.getlist("subnet_name"), form.getlist("subnet_hosts")
         if len(names) != len(counts) or not 1 <= len(names) <= 128:
-            raise ValueError("Dodaj od 1 do 128 sieci i podaj liczbę urządzeń dla każdej.")
+            raise ValueError(tr("Dodaj od 1 do 128 sieci i podaj liczbę urządzeń dla każdej."))
         requests = []
         wanted = {}
         for index, (name, count) in enumerate(zip(names, counts, strict=True)):
             label = str(name).strip()
             if not label or len(label) > 100:
-                raise ValueError("Każda sieć potrzebuje nazwy (do 100 znaków).")
+                raise ValueError(tr("Każda sieć potrzebuje nazwy (do 100 znaków)."))
             try:
                 hosts = int(str(count))
             except ValueError as error:
-                raise ValueError(f"{label}: wpisz całkowitą liczbę urządzeń.") from error
+                raise ValueError(
+                    tr("{name}: wpisz całkowitą liczbę urządzeń.", name=label)
+                ) from error
             if not 1 <= hosts <= 2**32 - 2:
-                raise ValueError(f"{label}: liczba urządzeń musi wynosić od 1 do 4294967294.")
+                raise ValueError(
+                    tr("{name}: liczba urządzeń musi wynosić od 1 do 4294967294.", name=label)
+                )
             prefix = 32 - (hosts + 1).bit_length()
             key = str(index)
             wanted[key] = (label, hosts)
@@ -67,14 +72,16 @@ def calculator_context(form: FormData) -> dict[str, Any]:
             except CalculationError:
                 raise
             except ValueError as error:
-                raise ValueError("Wpisz całkowitą liczbę podsieci lub długość prefiksu.") from error
+                raise ValueError(
+                    tr("Wpisz całkowitą liczbę podsieci lub długość prefiksu.")
+                ) from error
             context["preview"] = preview
             rows.extend(
                 {"name": str(i + 1), "subnet": calculate(str(n))}
                 for i, n in enumerate(preview.subnets)
             )
     elif mode != "inspect":
-        raise ValueError("Wybierz sposób obliczenia.")
+        raise ValueError(tr("Wybierz sposób obliczenia."))
     return context
 
 
@@ -82,33 +89,36 @@ def friendly_error(error: ValueError) -> str:
     if not isinstance(error, CalculationError):
         return str(error)
     if error.code == "choose_one_split_mode":
-        return (
+        return tr(
             "Wybierz podział według liczby podsieci albo długości prefiksu "
             "i uzupełnij odpowiednie pole."
         )
     if error.code == "subnet_count_not_power_of_two":
-        return (
+        return tr(
             "Równe podsieci tworzymy w liczbie 2, 4, 8, 16 itd. "
-            f"Wpisz {error.suggested_count} lub wybierz VLSM dla sieci o różnych rozmiarach."
+            "Wpisz {count} lub wybierz VLSM dla sieci o różnych rozmiarach.",
+            count=error.suggested_count,
         )
     return calculation_error(error)
 
 
 def project_from_calculation(context: dict[str, Any], name: str) -> Project:
     if context["mode"] != "vlsm" or context.get("unallocated") or not context["rows"]:
-        raise ValueError("Utwórz najpierw kompletny plan VLSM IPv4, aby przenieść go do projektu.")
+        raise ValueError(
+            tr("Utwórz najpierw kompletny plan VLSM IPv4, aby przenieść go do projektu.")
+        )
     site, building = uuid4().hex, uuid4().hex
     document = {
         "schema_version": 3,
         "project": {
             "id": uuid4().hex,
-            "name": name.strip() or "Plan z kalkulatora",
+            "name": name.strip() or tr("Plan z kalkulatora"),
             "v4_pool": str(context["result"].network),
             "v6_active": False,
             "settings": {"growth_pct": 0, "gateway": "none", "gateway_addrs": 0},
             "nodes": [
-                {"id": site, "kind": "site", "name": "Lokalizacja 1"},
-                {"id": building, "kind": "building", "name": "Budynek 1", "parent_id": site},
+                {"id": site, "kind": "site", "name": tr("Lokalizacja 1")},
+                {"id": building, "kind": "building", "name": tr("Budynek 1"), "parent_id": site},
                 *[
                     {
                         "id": uuid4().hex,

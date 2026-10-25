@@ -1,5 +1,6 @@
 """Create an allowlisted source handoff without local data or environments."""
 
+import tomllib
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
@@ -46,7 +47,8 @@ def package_source() -> Path:
             for path in (ROOT / folder).rglob("*")
             if path.is_file() and path.suffix in EXTENSIONS and "__pycache__" not in path.parts
         )
-    target = ROOT / "dist/address-plan-1.1.0-source.zip"
+    version = tomllib.loads((ROOT / "pyproject.toml").read_text("utf-8"))["project"]["version"]
+    target = ROOT / f"dist/address-plan-{version}-source.zip"
     target.parent.mkdir(exist_ok=True)
     with ZipFile(target, "w", compression=ZIP_DEFLATED) as archive:
         for path in sorted(set(paths)):

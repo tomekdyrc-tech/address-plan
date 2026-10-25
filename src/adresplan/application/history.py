@@ -1,7 +1,10 @@
 """Compare persisted inputs and historical results without recalculating old plans."""
 
+import re
 from dataclasses import dataclass
 from typing import Any
+
+from adresplan.i18n import tr
 
 _LABELS = {
     "nodes": "Element",
@@ -56,8 +59,34 @@ _LABELS = {
 }
 
 
+# Reasons are stored in Polish in the database and translated when displayed.
+HISTORY_REASONS = frozenset(
+    (
+        "Utworzenie projektu",
+        "Edycja projektu",
+        "Początek historii po aktualizacji",
+        "Zatwierdzenie podglądu zmian",
+        "Zamrożenie adresów",
+        "Usunięcie przypięć",
+        "Dodanie blokad",
+        "Budynek z szablonu",
+        "Lokalizacje z szablonu",
+        "Zmiana użycia IPv6",
+        "Dopasowanie hierarchii IPv6",
+    )
+)
+_RESTORE_REASON = re.compile(r"Przywrócenie wersji (\d+)")
+
+
+def reason_label(reason: str) -> str:
+    restored = _RESTORE_REASON.fullmatch(reason)
+    if restored:
+        return tr("Przywrócenie wersji {number}", number=restored[1])
+    return tr(reason) if reason in HISTORY_REASONS else reason
+
+
 def field_label(path: str) -> str:
-    return " · ".join(_LABELS.get(part, part) for part in path.split("."))
+    return " · ".join(tr(_LABELS[part]) if part in _LABELS else part for part in path.split("."))
 
 
 @dataclass(frozen=True, slots=True)
@@ -94,7 +123,7 @@ def compare_snapshots(before: dict[str, Any], after: dict[str, Any]) -> list[Cha
         else:
             changes.append(Change(area, element, path, _text(left), _text(right)))
 
-    for area, key in (("Dane wejściowe", "project"), ("Wynik planowania", "plan")):
+    for area, key in ((tr("Dane wejściowe"), "project"), (tr("Wynik planowania"), "plan")):
         left, right = before.get(key, {}), after.get(key, {})
         for field in sorted(left.keys() | right.keys()):
             old, new = left.get(field), right.get(field)
@@ -125,5 +154,5 @@ def compare_snapshots(before: dict[str, Any], after: dict[str, Any]) -> list[Cha
                     label = names.get(node_id, node_id)
                     compare(area, label, old_by_id.get(node_id), new_by_id.get(node_id), field)
             else:
-                compare(area, "Projekt", old, new, field)
+                compare(area, tr("Projekt"), old, new, field)
     return changes

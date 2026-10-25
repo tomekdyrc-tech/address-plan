@@ -20,11 +20,12 @@ from adresplan.core.models import (
     node_sort_key,
 )
 from adresplan.core.sizing import grown_host_count
+from adresplan.i18n import tr
 
 
 def document_details(project: Project) -> tuple[tuple[str, str], ...]:
     return tuple(
-        (label, value)
+        (tr(label), value)
         for label, value in (
             ("Autor", project.author),
             ("Organizacja", project.organization),
@@ -59,7 +60,7 @@ class Report:
 
     @property
     def status(self) -> str:
-        return "KOMPLETNY" if self.plan.is_complete else "NIEKOMPLETNY"
+        return tr("KOMPLETNY") if self.plan.is_complete else tr("NIEKOMPLETNY")
 
 
 def create_report(project: Project) -> Report:
@@ -112,12 +113,18 @@ def create_report(project: Project) -> Report:
     return Report(project, plan, sites, buildings, tuple(rows))
 
 
+def ipv6_description(project: Project) -> str:
+    if not project.v6_active:
+        return tr("Wyłączone (konfiguracja zachowana)") if project.v6_prefix else tr("Wyłączone")
+    return str(project.v6_prefix) if project.v6_prefix else "—"
+
+
 def address_range(value: AddressRange | None) -> str:
     return "" if value is None else f"{value.first}–{value.last}"
 
 
 def percentage(value: Fraction | None) -> str:
     if value is None:
-        return "n/d"
+        return tr("n/d")
     scaled = (value.numerator * 10000 + value.denominator // 2) // value.denominator
     return f"{scaled // 100}.{scaled % 100:02d}%"

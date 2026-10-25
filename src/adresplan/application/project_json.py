@@ -15,6 +15,7 @@ from adresplan.application.schemas import SCHEMA_VERSION, DocumentInput, Project
 from adresplan.core.models import Plan, Project
 from adresplan.core.plan import build_plan
 from adresplan.core.structure import validate_structure
+from adresplan.i18n import tr
 
 MAX_JSON_BYTES = 16 * 1024 * 1024
 _PROJECT_ADAPTER = TypeAdapter(Project)
@@ -95,11 +96,12 @@ def _validation_error(error: ValidationError, *, project_only: bool = False) -> 
         ):
             path = (*path[:3], *path[4:])
         code = item["type"]
-        message = _MESSAGES.get(code, item["msg"])
+        message = tr(_MESSAGES[code]) if code in _MESSAGES else item["msg"]
         if path == ("schema_version",):
             code = "unsupported_schema_version" if code != "missing" else "missing"
-            message = (
-                f"Wymagana jest schema_version jako liczba całkowita od 1 do {SCHEMA_VERSION}."
+            message = tr(
+                "Wymagana jest schema_version jako liczba całkowita od 1 do {version}.",
+                version=SCHEMA_VERSION,
             )
         issues.append(InputIssue(path, code, message))
     return ProjectJSONError(tuple(issues))
@@ -118,7 +120,9 @@ def _check_structure(project: Project) -> None:
                     InputIssue(
                         ("project", "nodes", index, field),
                         finding.code,
-                        _STRUCTURE_MESSAGES.get(finding.code, "Nieprawidłowa struktura drzewa."),
+                        tr(
+                            _STRUCTURE_MESSAGES.get(finding.code, "Nieprawidłowa struktura drzewa.")
+                        ),
                     )
                 )
     raise ProjectJSONError(tuple(issues))
@@ -128,13 +132,16 @@ def _unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
     result: dict[str, object] = {}
     for key, value in pairs:
         if key in result:
-            _fail("duplicate_json_key", f"Powtórzone pole JSON: {key}.")
+            _fail("duplicate_json_key", tr("Powtórzone pole JSON: {key}.", key=key))
         result[key] = value
     return result
 
 
 def _constant(value: str) -> NoReturn:
-    _fail("invalid_json_number", f"Wartość {value} nie jest poprawną liczbą JSON.")
+    _fail(
+        "invalid_json_number",
+        tr("Wartość {value} nie jest poprawną liczbą JSON.", value=value),
+    )
 
 
 def _finite_float(value: str) -> float:
@@ -149,11 +156,11 @@ def loads_project(data: str | bytes) -> ProjectState:
     try:
         raw = data.encode("utf-8") if isinstance(data, str) else data
         if len(raw) > MAX_JSON_BYTES:
-            _fail("json_too_large", "Plik JSON przekracza limit 16 MiB.")
+            _fail("json_too_large", tr("Plik JSON przekracza limit 16 MiB."))
         text = raw.decode("utf-8-sig")
     except UnicodeError as error:
         raise ProjectJSONError(
-            (InputIssue((), "invalid_utf8", "Plik musi używać UTF-8."),)
+            (InputIssue((), "invalid_utf8", tr("Plik musi używać UTF-8.")),)
         ) from error
     try:
         value = json.loads(
@@ -168,7 +175,11 @@ def loads_project(data: str | bytes) -> ProjectState:
                 InputIssue(
                     (),
                     "invalid_json",
-                    f"Błędny JSON: wiersz {error.lineno}, kolumna {error.colno}.",
+                    tr(
+                        "Błędny JSON: wiersz {line}, kolumna {column}.",
+                        line=error.lineno,
+                        column=error.colno,
+                    ),
                 ),
             )
         ) from error
@@ -176,7 +187,7 @@ def loads_project(data: str | bytes) -> ProjectState:
         if isinstance(error, ProjectJSONError):
             raise
         raise ProjectJSONError(
-            (InputIssue((), "invalid_json", "Nieprawidłowa liczba lub zbyt głęboki JSON."),)
+            (InputIssue((), "invalid_json", tr("Nieprawidłowa liczba lub zbyt głęboki JSON.")),)
         ) from error
     try:
         document = DocumentInput.model_validate(value)
@@ -200,7 +211,10 @@ def prepare_project(project: Project) -> ProjectState:
     canonical = data.to_core()
     _check_structure(canonical)
     if canonical != project:
-        _fail("invalid_project", "Dane projektu nie odpowiadają typowanym modelom wejściowym.")
+        _fail(
+            "invalid_project",
+            tr("Dane projektu nie odpowiadają typowanym modelom wejściowym."),
+        )
     return ProjectState(canonical, build_plan(canonical))
 
 
@@ -247,7 +261,13 @@ def load_project(path: str | Path) -> ProjectState:
         raise ProjectJSONError(
             (
                 InputIssue(
-                    (), "file_read_error", f"Nie można odczytać pliku {target}: {error.strerror}."
+                    (),
+                    "file_read_error",
+                    tr(
+                        "Nie można odczytać pliku {path}: {reason}.",
+                        path=target,
+                        reason=error.strerror,
+                    ),
                 ),
             )
         ) from error
@@ -264,7 +284,13 @@ def save_project(path: str | Path, project: Project) -> None:
         raise ProjectJSONError(
             (
                 InputIssue(
-                    (), "file_write_error", f"Nie można zapisać pliku {target}: {error.strerror}."
+                    (),
+                    "file_write_error",
+                    tr(
+                        "Nie można zapisać pliku {path}: {reason}.",
+                        path=target,
+                        reason=error.strerror,
+                    ),
                 ),
             )
         ) from error

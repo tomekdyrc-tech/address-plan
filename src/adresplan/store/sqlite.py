@@ -18,6 +18,7 @@ from uuid import uuid4
 from adresplan import __version__
 from adresplan.application.project_json import dumps_project, loads_project
 from adresplan.core.models import Project
+from adresplan.i18n import tr
 
 
 class StoreError(ValueError):
@@ -39,7 +40,7 @@ class TemplateNameError(StoreError):
 def template_name(value: str) -> str:
     label = value.strip()
     if not label or len(label) > 200:
-        raise TemplateNameError("Nazwa szablonu musi zawierać od 1 do 200 znaków.")
+        raise TemplateNameError(tr("Nazwa szablonu musi zawierać od 1 do 200 znaków."))
     return label
 
 
@@ -92,7 +93,7 @@ def duplicate_project(project: Project) -> Project:
     return replace(
         project,
         id=uuid4().hex,
-        name=project.name + " — kopia",
+        name=project.name + " — " + tr("kopia"),
         nodes=tuple(
             replace(node, id=ids[node.id], parent_id=ids.get(node.parent_id or ""))
             for node in project.nodes
@@ -119,7 +120,7 @@ class ProjectStore:
                     "SELECT name FROM sqlite_master WHERE type='table'"
                 ).fetchall()
                 if tables:
-                    raise StoreError("Plik zawiera obcą bazę danych. Wybierz inny plik.")
+                    raise StoreError(tr("Plik zawiera obcą bazę danych. Wybierz inny plik."))
                 connection.execute(
                     "CREATE TABLE projects (key TEXT PRIMARY KEY, name TEXT NOT NULL, "
                     "document TEXT NOT NULL, revision INTEGER NOT NULL CHECK(revision > 0), "
@@ -127,10 +128,12 @@ class ProjectStore:
                 )
                 connection.execute("PRAGMA user_version=1")
             elif version not in (1, 2, 3):
-                raise StoreError("Nieobsługiwana wersja bazy. Użyj odpowiedniej wersji aplikacji.")
+                raise StoreError(
+                    tr("Nieobsługiwana wersja bazy. Użyj odpowiedniej wersji aplikacji.")
+                )
             columns = connection.execute("PRAGMA table_info(projects)").fetchall()
             if [row[1] for row in columns] != ["key", "name", "document", "revision", "updated_at"]:
-                raise StoreError("Nieprawidłowa struktura bazy projektów.")
+                raise StoreError(tr("Nieprawidłowa struktura bazy projektów."))
             if version in (0, 1):
                 connection.execute(
                     "CREATE TABLE revisions (project_key TEXT NOT NULL, revision INTEGER NOT NULL, "
@@ -177,7 +180,7 @@ class ProjectStore:
             ):
                 actual = [r[1] for r in connection.execute(f"PRAGMA table_info({table})")]
                 if actual != expected:
-                    raise StoreError("Nieprawidłowa struktura historii lub szablonów.")
+                    raise StoreError(tr("Nieprawidłowa struktura historii lub szablonów."))
 
     @contextmanager
     def connection(self) -> Iterator[sqlite3.Connection]:
@@ -186,7 +189,7 @@ class ProjectStore:
             with connection:
                 yield connection
         except sqlite3.Error as error:
-            raise StoreError("Nie udało się odczytać lub zapisać bazy projektów.") from error
+            raise StoreError(tr("Nie udało się odczytać lub zapisać bazy projektów.")) from error
         finally:
             connection.close()
 
@@ -203,7 +206,7 @@ class ProjectStore:
                 "SELECT document, revision, updated_at FROM projects WHERE key=?", (key,)
             ).fetchone()
         if row is None:
-            raise MissingProject("Nie znaleziono projektu.")
+            raise MissingProject(tr("Nie znaleziono projektu."))
         return StoredProject(key, loads_project(row[0]).project, row[1], row[2])
 
     def create(self, project: Project) -> StoredProject:
@@ -231,13 +234,13 @@ class ProjectStore:
                 "SELECT document, revision FROM projects WHERE key=?", (key,)
             ).fetchone()
             if row is None:
-                raise MissingProject("Nie znaleziono projektu.")
+                raise MissingProject(tr("Nie znaleziono projektu."))
             if row[1] != expected_revision:
                 raise RevisionConflict(
-                    "Projekt zmienił się w innej karcie. Wczytaj aktualną wersję."
+                    tr("Projekt zmienił się w innej karcie. Wczytaj aktualną wersję.")
                 )
             if json.loads(row[0])["project"]["id"] != project.id:
-                raise StoreError("Nie można zmienić identyfikatora istniejącego projektu.")
+                raise StoreError(tr("Nie można zmienić identyfikatora istniejącego projektu."))
             # Debounced input/change events may submit identical data twice.
             if json.loads(row[0]) == json.loads(document) and not reason.startswith("Przywrócenie"):
                 stamp = connection.execute(
@@ -274,7 +277,7 @@ class ProjectStore:
                 (key, revision),
             ).fetchone()
         if row is None:
-            raise MissingProject("Nie znaleziono tej wersji projektu.")
+            raise MissingProject(tr("Nie znaleziono tej wersji projektu."))
         result: dict[str, Any] = json.loads(row[0])
         return result
 
@@ -311,7 +314,7 @@ class ProjectStore:
                 "SELECT document FROM building_templates WHERE key=? AND archived=0", (key,)
             ).fetchone()
         if row is None:
-            raise MissingProject("Nie znaleziono szablonu budynku.")
+            raise MissingProject(tr("Nie znaleziono szablonu budynku."))
         result: dict[str, Any] = json.loads(row[0])
         return result
 
@@ -323,7 +326,7 @@ class ProjectStore:
                 (key,),
             ).fetchone()
         if row is None:
-            raise MissingProject("Nie znaleziono szablonu.")
+            raise MissingProject(tr("Nie znaleziono szablonu."))
         return {
             "key": key,
             "name": row[0],
@@ -348,9 +351,11 @@ class ProjectStore:
                 "SELECT name,document,archived,revision FROM building_templates WHERE key=?", (key,)
             ).fetchone()
             if row is None:
-                raise MissingProject("Nie znaleziono szablonu.")
+                raise MissingProject(tr("Nie znaleziono szablonu."))
             if row[3] != expected:
-                raise RevisionConflict("Szablon zmienił się w innej karcie. Odśwież bibliotekę.")
+                raise RevisionConflict(
+                    tr("Szablon zmienił się w innej karcie. Odśwież bibliotekę.")
+                )
             # Old releases accepted longer names. Archiving or replacing their
             # contents must remain possible without forcing a rename first.
             label = row[0] if name is None else template_name(name)

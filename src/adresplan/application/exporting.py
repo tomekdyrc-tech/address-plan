@@ -8,8 +8,9 @@ from adresplan.application.project_json import InputIssue, ProjectJSONError, dum
 from adresplan.core.models import Project
 from adresplan.export.csv_ import dumps_csv
 from adresplan.export.markdown import dumps_markdown
+from adresplan.i18n import tr
 
-ExportFormat: TypeAlias = Literal["csv", "md", "json", "xlsx", "docx"]
+ExportFormat: TypeAlias = Literal["csv", "md", "json", "xlsx", "docx", "cisco", "mikrotik"]
 ReportProfile: TypeAlias = Literal["full", "brief"]
 
 
@@ -24,6 +25,10 @@ def export_document(project: Project, format: ExportFormat, profile: ReportProfi
         return dumps_markdown(project)
     if format == "json":
         return dumps_project(project)
+    if format in ("cisco", "mikrotik"):
+        from adresplan.export.config import dumps_config
+
+        return dumps_config(project, format)
     raise ValueError("unsupported export format")
 
 
@@ -61,7 +66,11 @@ def save_document(path: str | Path, text: str | bytes, format: ExportFormat) -> 
                 InputIssue(
                     (),
                     "file_write_error",
-                    f"Nie można zapisać eksportu {target}: {error.strerror}.",
+                    tr(
+                        "Nie można zapisać eksportu {path}: {reason}.",
+                        path=target,
+                        reason=error.strerror,
+                    ),
                 ),
             )
         ) from error

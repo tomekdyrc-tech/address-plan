@@ -1,77 +1,61 @@
-# Eksport dokumentacji — v0.1
+# Eksporty
 
-Wersja v0.1 obsługuje CSV, Markdown i JSON. Każdy eksport waliduje wejście i liczy świeży plan wspólnym rdzeniem. Zapisana wcześniej migawka `plan` nie jest źródłem przydziałów. Pliki można tworzyć z projektu zwykłego albo zamrożonego.
+Każdy eksport liczy plan od nowa z danych projektu. Wynik zapisany wcześniej w pliku nigdy nie jest źródłem adresów. Raporty powstają w języku wybranym w interfejsie albo opcją `--lang` w [CLI](cli.md).
 
-## Polecenia
+| Format | Do czego służy |
+| --- | --- |
+| Markdown | Czytelny raport, np. do repozytorium na GitHubie |
+| CSV | Tabela segmentów do arkusza |
+| XLSX | Raport w Excelu z kilkoma arkuszami |
+| DOCX | Raport w Wordzie, gotowy do druku |
+| JSON | Kopia projektu do ponownego importu |
+| Cisco IOS, MikroTik | Konfiguracja startowa bramy w każdym budynku |
+| SVG | Diagram hierarchii (z widoku Diagram w przeglądarce) |
 
-Z głównego folderu projektu:
+Plan niekompletny też można wyeksportować. Dokument ma wtedy wyraźny status, zawiera udane przydziały i listę błędów, a CLI kończy się kodem 1.
 
-```powershell
-New-Item -ItemType Directory -Force output | Out-Null
-.\.venv\Scripts\adresplan.exe export examples/church-av.json --format csv --output output/plan.csv
-.\.venv\Scripts\adresplan.exe export examples/church-av.json --format md --output output/plan.md
-.\.venv\Scripts\adresplan.exe export examples/church-av.json --format json --output output/projekt.json
-```
-
-Skróty: `-f` oznacza `--format`, `-o` oznacza `--output`. Format jest wymagany, a rozszerzenie pliku nie zmienia wybranego formatu. Bez `--output` sam dokument trafia na stdout. Potwierdzenie zapisu i diagnostyka trafiają na stderr. `--verbose` dodaje komunikaty informacyjne.
-
-Katalog docelowy musi istnieć. Zapis wykorzystuje plik tymczasowy w tym samym katalogu i atomową podmianę. Jawnie wskazany istniejący plik jest zastępowany po przygotowaniu pełnego dokumentu. CSV/Markdown nie mogą nadpisać źródłowego projektu pod tą samą ścieżką. JSON można jawnie zaktualizować w miejscu.
-
-Kod 0 oznacza sukces lub same ostrzeżenia. Kod 1 oznacza wyeksportowany plan niekompletny; dokument zawiera status, udane przydziały i diagnostykę. Błąd wejścia lub zapisu daje kod 2. Niekompletny plan można dokumentować i poprawiać, ale nie można go zamrozić.
-
-## CSV
-
-CSV to tabela segmentów, z nazwą lokalizacji i budynku w każdym wierszu. Zawiera:
-
-- identyfikatory, nazwę projektu, status kompletności oraz liczbę błędów i ostrzeżeń;
-- segment, VLAN, rolę, hosty wejściowe, efektywny zapas i hosty z zapasem;
-- IPv4 CIDR, maskę, wymagane użyteczne adresy, bramy, zakres użyteczny, statyczny, DHCP i broadcast;
-- IPv6 CIDR, bramę, tryb RA, końce P2P/loopbacków i reverse DNS;
-- uwagi segmentu, budynku i lokalizacji oraz błędy/ostrzeżenia dotyczące segmentu lub jego przodków.
-
-Kolumna `IPv6 CIDR` obejmuje /64, /127 i /128, zgodnie z rolą segmentu. P2P i loopback nie mają bram ani DHCP. Dla /31 i /32 kolumna broadcast pozostaje pusta. Brak przydziału w niekompletnym planie daje puste pola adresowe, ale sam segment nadal ma wiersz. Projekt bez segmentów ma jeden wiersz typu `projekt`, żeby zachować status i diagnostykę.
-
-Plik używa średnika, wszystkich pól w cudzysłowach, końców wierszy CRLF i UTF-8 z BOM. Na stdout BOM nie jest dodawany. Moduł `csv` obsługuje średniki, cudzysłowy i nowe linie w danych. Przy ręcznym imporcie do arkusza wybierz separator `;`, UTF-8 i tekst dla kolumn adresowych. XLSX zapisuje tekstowe typy komórek bez potrzeby ręcznego importu.
-
-Tekst zaczynający się od `=`, `+`, `-` lub `@` — również po białych znakach/BOM — dostaje apostrof na początku komórki, aby ograniczyć interpretowanie tekstu jako formuły w arkuszu. Dotyczy to także pól zaczynających się od tabulatora lub nowej linii. Jest to świadoma zmiana prezentacji CSV; oryginał pozostaje w JSON. CSV nie służy do ponownego importu projektu.
-
-CSV przedstawia segmenty; pełne podsumowania, wolne bloki i wszystkie komunikaty znajdziesz w Markdown lub JSON.
+Pliki są zapisywane bezpiecznie: najpierw powstaje plik tymczasowy, a dopiero potem zastępuje docelowy. Raport CSV lub Markdown nie może nadpisać źródłowego pliku JSON.
 
 ## Markdown
 
-Raport do repozytorium zawiera:
+Zawiera status, założenia i ustawienia, lokalizacje i budynki, dla każdego budynku tabele segmentów z adresacją IPv4 i IPv6, infrastrukturę IPv6, wykorzystanie pul, wolne bloki i pełną walidację. Nazwy wpisane przez użytkownika są cytowane, więc nie zepsują tabeli ani nie wstawią HTML.
 
-1. Nazwę projektu, status, liczbę błędów i ostrzeżeń.
-2. Założenia, pule, wszystkie ustawienia projektu i wyjaśnienie liczenia hostów.
-3. Lokalizacje i budynki, ich bloki sumaryczne, przypięcia i uwagi.
-4. Osobno dla każdego budynku: zapotrzebowanie segmentów, IPv4 z rezerwacjami oraz IPv6.
-5. Infrastrukturę IPv6 z trzema wydzielonymi pulami /64.
-6. Metryki, każdy poziom osobno, z dokładnymi całkowitymi licznikami adresów.
-7. Wszystkie wolne bloki z rodzicem i rodzajem puli.
-8. Pełną walidację z poziomem, kodem, ID węzła i polskim opisem.
+Przykłady: [raport sieci AV](../examples/exports/church-av.md), [raport T4](../examples/exports/t4-hierarchy.md).
 
-Nazwy i uwagi są tekstem: znaki Markdown są cytowane, surowy HTML jest kodowany, a nowe linie w komórkach zamieniane na `<br>`. Użytkownik nie może wprowadzić nowego wiersza tabeli ani nagłówka przez treść nazwy. Brak wartości jest oznaczony kreską. Metryki rodziców i dzieci nie są dodawane do jednego wyniku.
+## CSV
 
-Przykładowy [raport sieci AV](../examples/exports/church-av.md) i [raport T4](../examples/exports/t4-hierarchy.md) są częścią repozytorium. Markdown można przeglądać na GitHubie. Od wersji 1.0 dostępne są również DOCX i widok do druku/PDF.
+Jeden wiersz na segment, z nazwą lokalizacji i budynku. Kolumny obejmują VLAN, rolę, liczby hostów, adresację IPv4 (CIDR, maska, brama, zakresy statyczny i DHCP, broadcast), IPv6 (CIDR, brama, tryb RA, końce łącza, reverse DNS), uwagi i komunikaty walidacji.
 
-## JSON
-
-`export --format json` używa tego samego formatu co `plan --json` i `plan --output`. Zawiera `schema_version=2`, pełne wejście i świeży wynik. Nie ma drugiej implementacji formatu. To właściwy format do zachowania projektu, przypięć i infrastruktury. Szczegóły: [json-format.md](json-format.md).
-
-Eksport nie zmienia wejścia, nie losuje ULA i nie dodaje dat ani identyfikatorów. Dla tego samego wejścia i wersji algorytmu treść jest powtarzalna.
-
-Techniczne źródła: [Python csv](https://docs.python.org/3.12/library/csv.html), [tabele GitHub Flavored Markdown](https://github.github.com/gfm/#tables-extension-).
+Plik ma separator `;`, kodowanie UTF-8 z BOM i wszystkie pola w cudzysłowach. Tekst zaczynający się od `=`, `+`, `-` lub `@` dostaje apostrof na początku, żeby arkusz nie potraktował go jak formuły. CSV jest dokumentacją, nie służy do importu.
 
 ## XLSX i DOCX
 
-`export --format xlsx --output plan.xlsx` oraz `export --format docx --output plan.docx` zapisują binarne dokumenty. `--output` jest wymagane, żeby zawartość ZIP nie trafiła przypadkiem do terminala. Kody zakończenia 0/1/2 i atomowy zapis zachowują dotychczasowe znaczenie.
+XLSX ma arkusze Plan, Podsumowanie, Wolne bloki i Walidacja, a przy blokadach także arkusz Blokady. Wszystkie komórki są tekstem: długie adresy IPv6 nie są zaokrąglane, a formuły nie są wykonywane. Nagłówki są zamrożone i mają filtry.
 
-XLSX: Plan, Podsumowanie, Wolne bloki i Walidacja; tytuł/status, filtry, zamrożone nagłówki i identyfikacja, szerokości, zawijanie, powtarzane nagłówki wydruku. Plan zawiera pola CSV, z lokalizacją/budynkiem/segmentem na początku. Wszystkie komórki są tekstowe: zachowują dokładne IPv6 i nie wykonują formuł. Wydruk szerokiej tabeli zachowuje skalę 100% i może wymagać kilku stron w poziomie. Treści ponad limit komórki XLSX są odrzucane z komunikatem, bez cichego obcinania.
+DOCX to raport A4 w poziomie: założenia, ustawienia, tabele IPv4 i IPv6 dla każdego budynku, infrastruktura, wolne bloki i walidacja. Strony są numerowane.
 
-DOCX: A4 poziomo, tytuł i założenia, ustawienia, tabele IPv4 i IPv6 dla każdego budynku, uwagi, infrastruktura, wolne bloki i walidacja. Powtarzane nagłówki, niedzielone zwykłe wiersze i numerowane strony ułatwiają czytanie długich raportów. Lista wolnych bloków IPv6 może zajmować wiele stron — pokazuje pełny wynik, bez wyliczania pojedynczych hostów.
+Oba formaty mają profil **skrócony** (same przydziały dla odbiorcy) i **szczegółowy** (dla administratora). Pliki Office wymagają w CLI opcji `-o`.
 
-Daty kontenera ZIP/Office mogą się różnić między zapisami. Powtarzalność dotyczy danych raportu; nie wymaga identyczności binarnej DOCX/XLSX. Do powtarzalnego porównywania źródeł używaj JSON, CSV lub Markdown.
+## JSON
 
-## Blokady i diagram v1.1
+Ten sam format co `plan --json`: pełne dane projektu i świeżo obliczony wynik (`schema_version` 3). To jedyny format do ponownego importu i do przechowywania zamrożonych adresów. Szczegóły: [format JSON](json-format.md).
 
-JSON, Markdown i DOCX zawierają listę blokad; XLSX dodaje arkusz Blokady, gdy lista nie jest pusta. Metryki zajętości uwzględniają także blokady. CSV nadal przedstawia segmenty, bez osobnych wierszy zewnętrznych blokad. Diagram SVG pobiera się z widoku Diagram w przeglądarce; to samodzielny plik bez zewnętrznych zasobów i skryptów.
+## Konfiguracja Cisco IOS i MikroTik
+
+Generator tworzy szkic konfiguracji bramy dla każdego budynku:
+
+- dla segmentu z numerem VLAN: VLAN i interfejs VLAN z adresem bramy,
+- dla sieci LAN: serwer DHCP z zakresem z planu (adresy bram i statyczne są wyłączone z puli),
+- dla loopbacków: interfejs loopback z adresem /32,
+- dla IPv6: adres bramy, ogłaszanie prefiksu, a przy DHCPv6 odpowiednie flagi RA.
+
+Program nie zna fizycznych portów urządzenia. Dlatego łącza P2P i segmenty bez VLAN-u są wypisane jako zakomentowane szablony z miejscem `<INTERFACE>` do uzupełnienia. W MikroTiku interfejsy VLAN powstają na interfejsie `bridge`.
+
+Cała konfiguracja jest w ASCII (np. „Dźwięk” → `Dzwiek`). Nazwy z projektu są zamieniane na bezpieczne identyfikatory, a opisy na jedną linię, więc tekst wpisany przez użytkownika nie może dodać własnego polecenia.
+
+To punkt wyjścia, nie gotowa konfiguracja produkcyjna. Przed wgraniem sprawdź nazwy interfejsów, trunki, zabezpieczenia i ustawienia DHCP.
+
+```powershell
+.\.venv\Scripts\adresplan.exe export examples/church-av.json -f cisco -o output/brama.txt
+.\.venv\Scripts\adresplan.exe export examples/church-av.json -f mikrotik -o output/brama.rsc
+```

@@ -11,3 +11,7 @@
 *.xlsx binary
 *.png binary
 *.jpg binary
+*.txt text eol=lf
+*.rsc text eol=lf
+# Sample CSV exports are compared byte for byte (CRLF rows, LF inside cells).
+*.csv binary

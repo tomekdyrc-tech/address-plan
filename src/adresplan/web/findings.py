@@ -2,8 +2,9 @@
 
 from dataclasses import dataclass
 
-from adresplan.application.console import FINDING_MESSAGES, format_finding
+from adresplan.application.console import finding_message, format_finding
 from adresplan.core.models import Finding, Project, Segment
+from adresplan.i18n import tr
 from adresplan.web.forms import (
     DOCUMENT_FIELDS,
     NODE_FIELDS,
@@ -35,23 +36,26 @@ def present_finding(finding: Finding, project: Project) -> WebFinding:
         current = nodes.get(current.parent_id or "")
     location = " → ".join(reversed(path)) or project.name
     code = finding.code
-    message = FINDING_MESSAGES.get(code)
-    if message is None and code.startswith("v6_"):
-        base = FINDING_MESSAGES.get(code[3:])
-        message = "IPv6: " + base if base else None
-    message = message or "Sprawdź reguły planowania tego elementu."
+    message = finding_message(code)
     if code in ("insufficient_space", "missing_segment_allocation"):
-        message = "Brak miejsca na podsieć IPv4"
-        if isinstance(node, Segment):
-            message += f" dla {node.hosts} urządzeń (przed zapasem i bramą)"
-        message += ". Zwiększ pulę rodzica albo zmniejsz zapotrzebowanie."
-    if code in ("v6_insufficient_space", "v6_missing_segment_allocation"):
         message = (
+            tr(
+                "Brak miejsca na podsieć IPv4 dla {hosts} urządzeń (przed zapasem i bramą). "
+                "Zwiększ pulę rodzica albo zmniejsz zapotrzebowanie.",
+                hosts=node.hosts,
+            )
+            if isinstance(node, Segment)
+            else tr(
+                "Brak miejsca na podsieć IPv4. Zwiększ pulę rodzica albo zmniejsz zapotrzebowanie."
+            )
+        )
+    if code in ("v6_insufficient_space", "v6_missing_segment_allocation"):
+        message = tr(
             "Brak miejsca na podsieć IPv6. Sprawdź rozmiar puli i podział "
             "między lokalizacje oraz budynki."
         )
     if code == "high_segment_utilization":
-        message = "Sieć ma mało zapasu — zapotrzebowanie przekracza 85% pojemności podsieci."
+        message = tr("Sieć ma mało zapasu — zapotrzebowanie przekracza 85% pojemności podsieci.")
     field = "p.v4_pool"
     if code.startswith("v6_") or "v6" in code:
         field = "p.v6_prefix"
@@ -76,7 +80,7 @@ def present_finding(finding: Finding, project: Project) -> WebFinding:
 
 def input_label(path: tuple[str | int, ...], project: Project) -> str:
     labels = {
-        f.key: f.label
+        f.key: tr(f.label)
         for f in (
             *PROJECT_FIELDS,
             *DOCUMENT_FIELDS,
@@ -85,8 +89,8 @@ def input_label(path: tuple[str | int, ...], project: Project) -> str:
             *SEGMENT_FIELDS,
         )
     }
-    label = labels.get(str(path[-1]), "Dane projektu") if path else "Dane projektu"
+    label = labels.get(str(path[-1]), tr("Dane projektu")) if path else tr("Dane projektu")
     if len(path) > 2 and path[:2] == ("project", "nodes") and isinstance(path[2], int):
-        name = project.nodes[path[2]].name if path[2] < len(project.nodes) else "Nowy element"
+        name = project.nodes[path[2]].name if path[2] < len(project.nodes) else tr("Nowy element")
         return f"{name} → {label}"
     return label

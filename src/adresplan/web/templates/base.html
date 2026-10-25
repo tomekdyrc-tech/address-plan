@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pl">
+<html lang="{{ lang }}">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="csrf-token" content="{{ csrf }}">
@@ -11,8 +11,8 @@
 </head>
 <body>
 <header class="topbar"><a href="/" class="brand"><span class="brand-mark">AP</span> Address Plan</a>
-  <nav aria-label="Główna nawigacja"><a href="/">Projekty</a><a href="/calc">Kalkulator</a><a href="/templates">Szablony</a><label class="theme-control">Motyw<select id="theme-choice" aria-label="Motyw"><option value="auto">Systemowy</option><option value="light">Jasny</option><option value="dark">Ciemny</option></select></label><span class="local">v. {{ version }}</span></nav>
+  <nav aria-label="{{ tr("Główna nawigacja") }}"><a href="/">{{ tr("Projekty") }}</a><a href="/calc">{{ tr("Kalkulator") }}</a><a href="/templates">{{ tr("Szablony") }}</a><label class="theme-control">{{ tr("Motyw") }}<select id="theme-choice" aria-label="{{ tr("Motyw") }}"><option value="auto">{{ tr("Systemowy") }}</option><option value="light">{{ tr("Jasny") }}</option><option value="dark">{{ tr("Ciemny") }}</option></select></label><form action="/language" method="post" class="language-control"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="next" value="{{ next_path }}"><button type="submit" name="lang" value="pl" class="quiet" lang="pl" {% if lang == 'pl' %}aria-current="true"{% endif %}>PL</button><button type="submit" name="lang" value="en" class="quiet" lang="en" {% if lang == 'en' %}aria-current="true"{% endif %}>EN</button></form><span class="local">v. {{ version }}</span></nav>
 </header>
 <main>{% block content %}{% endblock %}</main>
-<footer><span id="copy-status" role="status"></span> IPv4 VLSM / IPv6 · Dane na tym komputerze · Address Plan</footer>
+<footer><span id="copy-status" role="status"></span> {{ tr("IPv4 VLSM / IPv6 · Dane na tym komputerze · Address Plan") }}</footer>
 </body></html>

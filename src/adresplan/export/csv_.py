@@ -7,7 +7,9 @@ from io import StringIO
 from adresplan.application.console import format_finding
 from adresplan.core.models import FindingLevel, Project
 from adresplan.export.common import address_range, create_report
+from adresplan.i18n import tr
 
+# Polish column ids; headers are translated when a file is written.
 CSV_COLUMNS = (
     "Typ wiersza",
     "Projekt ID",
@@ -57,7 +59,7 @@ def spreadsheet_text(value: str) -> str:
 def report_records(project: Project) -> Iterator[dict[str, str]]:
     report = create_report(project)
     base = {
-        "Typ wiersza": "segment",
+        "Typ wiersza": tr("segment"),
         "Projekt ID": project.id,
         "Projekt": project.name,
         "Status planu": report.status,
@@ -103,7 +105,7 @@ def report_records(project: Project) -> Iterator[dict[str, str]]:
     if not report.rows:
         yield {
             **base,
-            "Typ wiersza": "projekt",
+            "Typ wiersza": tr("projekt"),
             "Walidacja": "\n".join(
                 format_finding(f, project)
                 for f in report.plan.findings
@@ -117,7 +119,7 @@ def dumps_csv(project: Project) -> str:
     writer = csv.DictWriter(
         stream, fieldnames=CSV_COLUMNS, delimiter=";", quoting=csv.QUOTE_ALL, lineterminator="\r\n"
     )
-    writer.writeheader()
+    writer.writerow({column: tr(column) for column in CSV_COLUMNS})
     for data in report_records(project):
         writer.writerow({key: spreadsheet_text(value) for key, value in data.items()})
     return stream.getvalue()

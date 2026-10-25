@@ -21,8 +21,15 @@ from openpyxl.worksheet.worksheet import Worksheet
 from adresplan.application.console import format_finding
 from adresplan.application.project_json import InputIssue, ProjectJSONError
 from adresplan.core.models import IPv6PoolMetrics, PoolMetrics, Project
-from adresplan.export.common import address_range, create_report, document_details, percentage
+from adresplan.export.common import (
+    address_range,
+    create_report,
+    document_details,
+    ipv6_description,
+    percentage,
+)
 from adresplan.export.csv_ import CSV_COLUMNS, report_records
+from adresplan.i18n import tr
 
 _IDENTITY_COLUMNS = ("Lokalizacja", "Budynek", "Segment")
 XLSX_COLUMNS = (*_IDENTITY_COLUMNS, *(c for c in CSV_COLUMNS if c not in _IDENTITY_COLUMNS))
@@ -44,14 +51,20 @@ def _sheet(
     headers: Iterable[str],
     rows: Iterable[Iterable[object]],
 ) -> Worksheet:
-    sheet: Worksheet = book.create_sheet(name)
+    # Sheet names and headers arrive as Polish ids and are translated for display.
+    sheet: Worksheet = book.create_sheet(tr(name))
     header_values = list(headers)
-    values: list[list[object]] = [list(header_values), *[list(row) for row in rows]]
+    values: list[list[object]] = [
+        [tr(header) for header in header_values],
+        *[list(row) for row in rows],
+    ]
     count = len(values[0])
     sheet.append([office_text(project.name)])
-    sheet.append([f"Status: {status} · Źródło: projekt {office_text(project.id)}"])
     sheet.append(
-        ["Migawka planu. Zmiany adresacji wprowadź w Address Plan i wyeksportuj ponownie."]
+        [tr("Status: {status} · Źródło: projekt {id}", status=status, id=office_text(project.id))]
+    )
+    sheet.append(
+        [tr("Migawka planu. Zmiany adresacji wprowadź w Address Plan i wyeksportuj ponownie.")]
     )
     for cells in values:
         if any(len(office_text(value)) > 32767 for value in cells):
@@ -60,8 +73,10 @@ def _sheet(
                     InputIssue(
                         (),
                         "xlsx_cell_limit",
-                        "Komórka XLSX przekracza limit 32767 znaków. "
-                        "Skróć uwagi albo użyj DOCX/JSON.",
+                        tr(
+                            "Komórka XLSX przekracza limit 32767 znaków. "
+                            "Skróć uwagi albo użyj DOCX/JSON."
+                        ),
                     ),
                 )
             )
@@ -131,8 +146,8 @@ def dumps_xlsx(project: Project) -> bytes:
     )
     names = {n.id: n.name for n in project.nodes}
     summary: list[tuple[object, ...]] = [
-        ("Pula IPv4", project.v4_pool, "", "", "", ""),
-        ("Prefiks IPv6", project.ipv6_description, "", "", "", ""),
+        (tr("Pula IPv4"), project.v4_pool, "", "", "", ""),
+        (tr("Prefiks IPv6"), ipv6_description(project), "", "", "", ""),
     ]
     summary.extend((label, value, "", "", "", "") for label, value in document_details(project))
     metrics: tuple[PoolMetrics | IPv6PoolMetrics, ...] = (
@@ -140,7 +155,7 @@ def dumps_xlsx(project: Project) -> bytes:
         *report.plan.v6_metrics,
     )
     summary.extend(
-        ("Ustawienie: " + f.name, getattr(project.settings, f.name), "", "", "", "")
+        (tr("Ustawienie: {name}", name=f.name), getattr(project.settings, f.name), "", "", "", "")
         for f in fields(project.settings)
     )
     summary.extend(
@@ -228,7 +243,8 @@ def _table(
     table._tbl.tblPr.append(borders)
     for column, width in zip(table.columns, widths, strict=True):
         column.width = Cm(width)
-    for i, values in enumerate((headers, *[tuple(row) for row in rows])):
+    labels = tuple(tr(header) for header in headers)
+    for i, values in enumerate((labels, *[tuple(row) for row in rows])):
         row = table.rows[0] if i == 0 else table.add_row()
         row._tr.get_or_add_trPr().append(OxmlElement("w:cantSplit"))
         if i == 0:
@@ -269,20 +285,28 @@ def dumps_docx(project: Project) -> bytes:
         style.font.color.rgb = RGBColor(0, 0, 0)
     document.styles["Normal"].font.size = Pt(11)
     document.styles["Normal"].paragraph_format.space_after = Pt(7)
-    document.add_paragraph("Plan adresacji sieci", "Title")
+    document.add_paragraph(tr("Plan adresacji sieci"), "Title")
     document.add_paragraph(office_text(project.name), "Subtitle")
     for label, value in document_details(project):
         document.add_paragraph(office_text(f"{label}: {value}"))
     document.add_paragraph(
-        f"Status planu: {report.status}. Dokument przedstawia lokalizacje, budynki, "
-        "segmenty i rezerwacje. Wynik niekompletny zawiera wyłącznie udane przydziały; "
-        "przed wdrożeniem popraw błędy wymienione w walidacji."
+        tr(
+            "Status planu: {status}. Dokument przedstawia lokalizacje, budynki, "
+            "segmenty i rezerwacje. Wynik niekompletny zawiera wyłącznie udane przydziały; "
+            "przed wdrożeniem popraw błędy wymienione w walidacji.",
+            status=report.status,
+        )
     )
-    document.add_heading("Założenia", 1)
+    document.add_heading(tr("Założenia"), 1)
     document.add_paragraph(
-        f"Pula IPv4: {project.v4_pool}. Prefiks IPv6: {project.ipv6_description}. "
-        f"Rodzaj IPv6: {project.v6_kind}. Hosty nie obejmują osobnych bram i rezerwy statycznej. "
-        "Zapas hostów jest zaokrąglany w górę. P2P i loopback mają osobne reguły."
+        tr(
+            "Pula IPv4: {v4}. Prefiks IPv6: {v6}. Rodzaj IPv6: {kind}. "
+            "Hosty nie obejmują osobnych bram i rezerwy statycznej. "
+            "Zapas hostów jest zaokrąglany w górę. P2P i loopback mają osobne reguły.",
+            v4=project.v4_pool,
+            v6=ipv6_description(project),
+            kind=project.v6_kind,
+        )
     )
     _table(
         document,
@@ -304,7 +328,7 @@ def dumps_docx(project: Project) -> bytes:
     allocations4 = {a.node_id: a.network for a in report.plan.v4_allocations}
     allocations6 = {a.node_id: a.network for a in report.plan.v6_allocations}
     for site in report.sites:
-        document.add_heading("Lokalizacja " + office_text(site.name), 1)
+        document.add_heading(tr("Lokalizacja {name}", name=office_text(site.name)), 1)
         document.add_paragraph(
             f"IPv4: {allocations4.get(site.id, '—')} · IPv6: {allocations6.get(site.id, '—')}"
         )
@@ -313,7 +337,7 @@ def dumps_docx(project: Project) -> bytes:
         for building in report.buildings:
             if building.parent_id != site.id:
                 continue
-            document.add_heading("Budynek " + office_text(building.name), 2)
+            document.add_heading(tr("Budynek {name}", name=office_text(building.name)), 2)
             document.add_paragraph(
                 f"IPv4: {allocations4.get(building.id, '—')} · "
                 f"IPv6: {allocations6.get(building.id, '—')}"
@@ -322,7 +346,7 @@ def dumps_docx(project: Project) -> bytes:
                 document.add_paragraph(office_text(building.notes))
             rows = [r for r in report.rows if r.building.id == building.id]
             if not rows:
-                document.add_paragraph("Brak segmentów.")
+                document.add_paragraph(tr("Brak segmentów."))
                 continue
             _table(
                 document,
@@ -341,8 +365,11 @@ def dumps_docx(project: Project) -> bytes:
                         ", ".join(map(str, r.reservation.gateway_addresses))
                         if r.reservation
                         else "—",
-                        f"Statyczne: {address_range(r.reservation.static_range) or '—'}\n"
-                        f"DHCP: {address_range(r.reservation.dhcp_range) or '—'}"
+                        tr(
+                            "Statyczne: {range}",
+                            range=address_range(r.reservation.static_range) or "—",
+                        )
+                        + f"\nDHCP: {address_range(r.reservation.dhcp_range) or '—'}"
                         if r.reservation
                         else "—",
                     )
@@ -369,7 +396,7 @@ def dumps_docx(project: Project) -> bytes:
             for r in rows:
                 if r.segment.notes:
                     document.add_paragraph(office_text(r.segment.name + ": " + r.segment.notes))
-    document.add_heading("Infrastruktura IPv6", 1)
+    document.add_heading(tr("Infrastruktura IPv6"), 1)
     _table(
         document,
         ("Lokalizacja", "Blok", "Rezerwa", "P2P", "Loopback"),
@@ -386,7 +413,7 @@ def dumps_docx(project: Project) -> bytes:
         (4.3, 5.5, 5.5, 5.5, 5.5),
     )
     if project.active_blocked_subnets:
-        document.add_heading("Zajęte podsieci — blokady", 1)
+        document.add_heading(tr("Zajęte podsieci — blokady"), 1)
         _table(
             document,
             ("Pula", "CIDR", "Opis"),
@@ -396,7 +423,7 @@ def dumps_docx(project: Project) -> bytes:
             ),
             (8, 8, 10.3),
         )
-    document.add_heading("Wolne bloki", 1)
+    document.add_heading(tr("Wolne bloki"), 1)
     _table(
         document,
         ("Rodzic", "Rodzaj puli", "CIDR"),
@@ -406,7 +433,7 @@ def dumps_docx(project: Project) -> bytes:
         ),
         (8, 6, 12.3),
     )
-    document.add_heading("Walidacja", 1)
+    document.add_heading(tr("Walidacja"), 1)
     _table(
         document,
         ("Poziom", "Element", "Komunikat"),
@@ -417,7 +444,7 @@ def dumps_docx(project: Project) -> bytes:
         (2.5, 4.5, 19.3),
     )
     footer = section.footer.paragraphs[0]
-    footer.add_run("Address Plan · " + report.status + " · strona ")
+    footer.add_run("Address Plan · " + report.status + " · " + tr("strona") + " ")
     field = OxmlElement("w:fldSimple")
     field.set(qn("w:instr"), "PAGE")
     footer._p.append(field)

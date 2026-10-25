@@ -31,3 +31,6 @@ html[data-theme=dark] button:hover, html[data-theme=dark] .button:hover { backgr
 #address-diagram { max-width: none; }
 #address-diagram.diagram-fit { width: 100%; height: auto; }
 textarea { width: 100%; min-height: 7rem; font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: .4rem; padding: .6rem; }
+.language-control { display: flex; gap: 2px; }
+.language-control button { color: #d6e6e9; padding: 3px 7px; font-size: 12px; }
+.language-control button[aria-current] { background: #0d8178; border-color: #0d8178; color: #fff; }

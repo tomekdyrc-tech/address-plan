@@ -5,12 +5,13 @@ from dataclasses import replace
 from adresplan.application.project_json import InputIssue, ProjectJSONError
 from adresplan.core.models import Project
 from adresplan.core.plan6 import build_plan_v6
+from adresplan.i18n import tr
 
 
 def fit_ipv6_hierarchy(project: Project) -> Project:
     if not project.uses_ipv6:
         raise ProjectJSONError(
-            (InputIssue((), "ipv6_inactive", "Najpierw włącz planowanie IPv6."),)
+            (InputIssue((), "ipv6_inactive", tr("Najpierw włącz planowanie IPv6.")),)
         )
     if project.pinned_v6_infrastructure or any(n.pinned_v6 is not None for n in project.nodes):
         raise ProjectJSONError(
@@ -18,8 +19,10 @@ def fit_ipv6_hierarchy(project: Project) -> Project:
                 InputIssue(
                     (),
                     "ipv6_pinned",
-                    "Podział IPv6 zawiera przypięte adresy. Nie zmieniono hierarchii. "
-                    "Sprawdź przypięcia przed zmianą reguł.",
+                    tr(
+                        "Podział IPv6 zawiera przypięte adresy. Nie zmieniono hierarchii. "
+                        "Sprawdź przypięcia przed zmianą reguł."
+                    ),
                 ),
             )
         )
@@ -44,8 +47,10 @@ def fit_ipv6_hierarchy(project: Project) -> Project:
             InputIssue(
                 (),
                 "ipv6_capacity",
-                "Nie znaleziono podziału pasującego do puli, struktury i blokad. "
-                "Sprawdź pulę oraz ustawienia planowania IPv6.",
+                tr(
+                    "Nie znaleziono podziału pasującego do puli, struktury i blokad. "
+                    "Sprawdź pulę oraz ustawienia planowania IPv6."
+                ),
             ),
         )
     )

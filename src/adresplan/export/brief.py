@@ -2,16 +2,18 @@
 
 from io import BytesIO
 
-from adresplan.application.console import FINDING_MESSAGES
+from adresplan.application.messages import FINDING_MESSAGES
 from adresplan.core.models import Project
-from adresplan.export.common import create_report, document_details
+from adresplan.export.common import create_report, document_details, ipv6_description
 from adresplan.export.markdown import _table, markdown_text
+from adresplan.i18n import tr, tr_all
 
 
 def brief_data(
     project: Project,
 ) -> tuple[tuple[str, ...], list[tuple[object, ...]], list[str], str]:
     report = create_report(project)
+    # Polish header ids; each output translates them when rendering.
     headers: tuple[str, ...] = ("Lokalizacja", "Budynek", "Sieć", "VLAN", "IPv4", "Brama")
     if project.uses_ipv6:
         headers += ("IPv6",)
@@ -31,8 +33,11 @@ def brief_data(
     names = {n.id: n.name for n in project.nodes}
     warnings = [
         f"{names.get(f.node_id or '', project.name)}: "
-        + FINDING_MESSAGES.get(
-            f.code, FINDING_MESSAGES.get(f.code.removeprefix("v6_"), "Sprawdź reguły planowania.")
+        + tr(
+            FINDING_MESSAGES.get(
+                f.code,
+                FINDING_MESSAGES.get(f.code.removeprefix("v6_"), "Sprawdź reguły planowania."),
+            )
         )
         for f in report.plan.findings
         if f.level != "info"
@@ -43,11 +48,11 @@ def brief_data(
 def dumps_brief_markdown(project: Project) -> str:
     headers, rows, warnings, status = brief_data(project)
     sections = [
-        f"# Plan adresacji — {markdown_text(project.name)}",
-        f"**Status: {status}. Raport skrócony.**",
-        _table(("Dokumentacja", "Wartość"), document_details(project)),
-        f"IPv4: {project.v4_pool}. IPv6: {markdown_text(project.ipv6_description)}.",
-        _table(headers, rows),
+        "# " + tr("Plan adresacji — {name}", name=markdown_text(project.name)),
+        "**" + tr("Status: {status}. Raport skrócony.", status=status) + "**",
+        _table((tr("Dokumentacja"), tr("Wartość")), document_details(project)),
+        f"IPv4: {project.v4_pool}. IPv6: {markdown_text(ipv6_description(project))}.",
+        _table(tr_all(*headers), rows),
     ]
     sections.extend(f"- {markdown_text(w)}" for w in warnings)
     return "\n\n".join(sections) + "\n"
@@ -76,8 +81,8 @@ def brief_office(project: Project, format: str) -> bytes:
             ("Parametr", "Wartość"),
             (
                 *document_details(project),
-                ("IPv6", project.ipv6_description),
-                *(("Uwaga", w) for w in warnings),
+                ("IPv6", ipv6_description(project)),
+                *((tr("Uwaga"), w) for w in warnings),
             ),
         )
         book.save(output)
@@ -88,11 +93,11 @@ def brief_office(project: Project, format: str) -> bytes:
         section.page_width, section.page_height = Cm(29.7), Cm(21)
         section.left_margin = section.right_margin = Cm(1.5)
         document.add_paragraph(office_text(project.name), "Title")
-        document.add_paragraph(f"Status: {status}. Raport skrócony.")
+        document.add_paragraph(tr("Status: {status}. Raport skrócony.", status=status))
         for label, value in document_details(project):
             document.add_paragraph(office_text(f"{label}: {value}"))
         document.add_paragraph(
-            office_text(f"IPv4: {project.v4_pool}. IPv6: {project.ipv6_description}.")
+            office_text(f"IPv4: {project.v4_pool}. IPv6: {ipv6_description(project)}.")
         )
         docx_table(document, headers, rows, tuple(26 / len(headers) for _ in headers))
         for warning in warnings:

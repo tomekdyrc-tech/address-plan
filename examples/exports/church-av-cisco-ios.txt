@@ -1,0 +1,118 @@
+! Address Plan - konfiguracja startowa: Syntetyczna siec AV i biura
+! Status planu: KOMPLETNY. Pula IPv4: 10.42.0.0/20.
+! Szkic do przegladu przed wdrozeniem: sprawdz nazwy interfejsow, trunki VLAN, DHCP i zabezpieczenia urzadzenia.
+! Segmenty bez VLAN-u i lacza P2P sa zakomentowane; uzupelnij <INTERFACE>.
+!
+ipv6 unicast-routing
+!
+! ===== Lokalizacja zboru / Sala glowna =====
+vlan 10
+ name Dzwiek
+!
+interface Vlan10
+ description Dzwiek
+ ip address 10.42.0.193 255.255.255.224
+ ipv6 address 2001:db8:42:100::1/64
+ no shutdown
+!
+ip dhcp excluded-address 10.42.0.193 10.42.0.197
+ip dhcp pool VLAN10-Dzwiek
+ network 10.42.0.192 255.255.255.224
+ default-router 10.42.0.193
+!
+vlan 20
+ name Obraz
+!
+interface Vlan20
+ description Obraz
+ ip address 10.42.0.225 255.255.255.224
+ ipv6 address 2001:db8:42:101::1/64
+ no shutdown
+!
+ip dhcp excluded-address 10.42.0.225 10.42.0.225
+ip dhcp pool VLAN20-Obraz
+ network 10.42.0.224 255.255.255.224
+ default-router 10.42.0.225
+!
+vlan 30
+ name Prezentacja
+!
+interface Vlan30
+ description Prezentacja
+ ip address 10.42.1.1 255.255.255.240
+ ipv6 address 2001:db8:42:102::1/64
+ no shutdown
+!
+ip dhcp excluded-address 10.42.1.1 10.42.1.1
+ip dhcp pool VLAN30-Prezentacja
+ network 10.42.1.0 255.255.255.240
+ default-router 10.42.1.1
+!
+vlan 40
+ name Monitoring
+!
+interface Vlan40
+ description Monitoring
+ ip address 10.42.0.190 255.255.255.192
+ ipv6 address 2001:db8:42:103::1/64
+ no shutdown
+!
+ip dhcp excluded-address 10.42.0.129 10.42.0.132
+ip dhcp excluded-address 10.42.0.190 10.42.0.190
+ip dhcp pool VLAN40-Monitoring
+ network 10.42.0.128 255.255.255.192
+ default-router 10.42.0.190
+!
+vlan 50
+ name Goscie
+!
+interface Vlan50
+ description Goscie
+ ip address 10.42.0.1 255.255.255.128
+ ipv6 address 2001:db8:42:104::1/64
+ no shutdown
+!
+ip dhcp excluded-address 10.42.0.1 10.42.0.1
+ip dhcp pool VLAN50-Goscie
+ network 10.42.0.0 255.255.255.128
+ default-router 10.42.0.1
+!
+vlan 60
+ name Zarzadzanie
+!
+interface Vlan60
+ description Zarzadzanie
+ ip address 10.42.1.17 255.255.255.240
+ ipv6 address 2001:db8:42:105::1/64
+ no shutdown
+!
+!
+! ===== Lokalizacja zboru / Biuro =====
+! Lacze P2P Lacze router-biuro: przypisz interfejs fizyczny.
+! interface <INTERFACE>
+! description Lacze router-biuro
+! ip address 10.42.2.32 255.255.255.254
+! ipv6 address 2001:db8:42:1::/127
+! no shutdown
+!
+interface Loopback0
+ description Loopback routera
+ ip address 10.42.2.34 255.255.255.255
+ ipv6 address 2001:db8:42:2::/128
+!
+vlan 70
+ name Stanowiska-biurowe
+!
+interface Vlan70
+ description Stanowiska biurowe
+ ip address 10.42.2.1 255.255.255.224
+ ipv6 address 2001:db8:42:200::1/64
+ no shutdown
+!
+ip dhcp excluded-address 10.42.2.1 10.42.2.1
+ip dhcp pool VLAN70-Stanowiska-biurowe
+ network 10.42.2.0 255.255.255.224
+ default-router 10.42.2.1
+!
+!
+end

@@ -12,8 +12,10 @@ from adresplan.application.exporting import export_document, save_document
 from adresplan.application.project_json import ProjectJSONError, load_project, loads_project
 from adresplan.core.models import GatewayPosition, Project
 from adresplan.core.plan import build_plan
+from adresplan.export.config import dumps_config
 from adresplan.export.csv_ import CSV_COLUMNS, dumps_csv
 from adresplan.export.markdown import dumps_markdown
+from adresplan.i18n import use_language
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -249,3 +251,15 @@ def test_committed_sample_exports_match_current_data(name: str) -> None:
     base = ROOT / "examples/exports"
     assert (base / f"{name}.md").read_bytes() == dumps_markdown(project).encode("utf-8")
     assert (base / f"{name}.csv").read_bytes() == dumps_csv(project).encode("utf-8-sig")
+
+
+def test_committed_sample_configs_and_english_report_match_current_data() -> None:
+    project = load_project(ROOT / "examples/church-av.json").project
+    base = ROOT / "examples/exports"
+    cisco = (base / "church-av-cisco-ios.txt").read_text(encoding="utf-8")
+    assert cisco == dumps_config(project, "cisco")
+    mikrotik = (base / "church-av-mikrotik.rsc").read_text(encoding="utf-8")
+    assert mikrotik == dumps_config(project, "mikrotik")
+    with use_language("en"):
+        english = dumps_markdown(project)
+    assert (base / "church-av.en.md").read_text(encoding="utf-8") == english
