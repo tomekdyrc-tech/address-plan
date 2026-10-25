@@ -1,0 +1,8 @@
+<aside id="tree" class="panel tree" {% if tree_oob %}hx-swap-oob="outerHTML"{% endif %}>
+<p class="eyebrow">Struktura projektu</p><a href="#project-settings" class="tree-root">{{ project.name }}</a>
+{% for site in project.nodes if site.kind == 'site' %}<div class="tree-site"><a href="#{{ anchor(site.id) }}">{{ site.name }}</a>
+{% for building in project.nodes if building.parent_id == site.id %}<div class="tree-building"><a href="#{{ anchor(building.id) }}">{{ building.name }}</a>
+{% for segment in project.nodes if segment.parent_id == building.id %}<a class="tree-segment" href="#{{ anchor(segment.id) }}">{{ segment.name }}</a>{% endfor %}
+</div>{% endfor %}</div>{% endfor %}
+<p class="hint">{{ project.nodes|length }} elementów · wersja {{ saved.revision }}</p>
+</aside>

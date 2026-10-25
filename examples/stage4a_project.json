@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "project": {
+    "id": "church-av-demo",
+    "name": "Przykładowa sieć AV",
+    "v4_pool": "10.42.0.0/20",
+    "v6_prefix": "2001:db8:42::/48",
+    "nodes": [
+      {
+        "id": "site",
+        "name": "Lokalizacja",
+        "kind": "site"
+      },
+      {
+        "id": "hall",
+        "name": "Sala główna",
+        "kind": "building",
+        "parent_id": "site"
+      },
+      {
+        "id": "audio",
+        "name": "Dźwięk",
+        "kind": "segment",
+        "parent_id": "hall",
+        "hosts": 20,
+        "vlan_id": 10,
+        "notes": "Dane sztuczne: mikser, stagebox i stanowiska realizacji."
+      },
+      {
+        "id": "video",
+        "name": "Obraz",
+        "kind": "segment",
+        "parent_id": "hall",
+        "sort_order": 1,
+        "hosts": 12,
+        "vlan_id": 20
+      },
+      {
+        "id": "mgmt",
+        "name": "Zarządzanie",
+        "kind": "segment",
+        "parent_id": "hall",
+        "sort_order": 2,
+        "role": "mgmt",
+        "hosts": 8,
+        "vlan_id": 30
+      }
+    ]
+  }
+}

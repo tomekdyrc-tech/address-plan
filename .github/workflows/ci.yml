@@ -1,0 +1,70 @@
+name: Stage checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: "3.11"
+          - os: ubuntu-latest
+            python: "3.12"
+          - os: windows-latest
+            python: "3.12"
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: requirements-dev.lock
+      - name: Install pinned tooling and package
+        run: |
+          python -m pip install -r requirements-dev.lock
+          python -m pip install --no-build-isolation --no-deps -e .
+      - name: Test examples and properties
+        run: python -m pytest
+      - name: Lint
+        run: python -m ruff check .
+      - name: Check formatting
+        run: python -m ruff format --check .
+      - name: Type-check package
+        run: python -m mypy --strict src/adresplan
+      - name: Check dependency consistency
+        run: python -m pip check
+      - name: Build package
+        run: python -m build --no-isolation
+  container:
+    name: Container smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build and start
+        run: docker compose up --build -d --wait
+      - name: Check pages and persisted project
+        shell: bash
+        run: |
+          curl --fail http://127.0.0.1:8000/
+          token=$(curl --fail -s http://127.0.0.1:8000/api/session | python3 -c 'import json,sys;print(json.load(sys.stdin)["csrf_token"])')
+          curl --fail -s -o /dev/null -X POST -H "X-CSRF-Token: $token" --data-urlencode "name=Container test" --data-urlencode "v4_pool=10.0.0.0/16" http://127.0.0.1:8000/projects/new
+          docker compose restart
+          for i in {1..30}; do curl --fail -s http://127.0.0.1:8000/api/projects > /tmp/projects.json && break; sleep 1; done
+          python3 -c 'import json; assert json.load(open("/tmp/projects.json"))[0]["name"] == "Container test"'
+      - name: Stop and show logs
+        if: always()
+        run: |
+          docker compose logs
+          docker compose down

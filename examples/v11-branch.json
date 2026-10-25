@@ -1,0 +1,547 @@
+{
+  "schema_version": 2,
+  "project": {
+    "id": "example-v11",
+    "name": "Oddział — blokady i rozbudowa",
+    "v4_pool": "10.42.0.0/16",
+    "nodes": [
+      {
+        "id": "site",
+        "name": "Oddział Gdańsk",
+        "kind": "site",
+        "parent_id": null,
+        "sort_order": 0,
+        "pinned_v4": null,
+        "pinned_v6": null,
+        "notes": ""
+      },
+      {
+        "id": "building",
+        "name": "Biuro",
+        "kind": "building",
+        "parent_id": "site",
+        "sort_order": 0,
+        "pinned_v4": null,
+        "pinned_v6": null,
+        "notes": ""
+      },
+      {
+        "id": "office",
+        "name": "Pracownicy",
+        "kind": "segment",
+        "parent_id": "building",
+        "sort_order": 0,
+        "pinned_v4": null,
+        "pinned_v6": null,
+        "notes": "",
+        "role": "lan",
+        "hosts": 20,
+        "growth_pct": null,
+        "gateway": null,
+        "gateway_addrs": null,
+        "static_count": 0,
+        "vlan_id": 10,
+        "v6_enabled": true,
+        "ra_mode": null
+      },
+      {
+        "id": "guests",
+        "name": "Goście",
+        "kind": "segment",
+        "parent_id": "building",
+        "sort_order": 0,
+        "pinned_v4": null,
+        "pinned_v6": null,
+        "notes": "",
+        "role": "lan",
+        "hosts": 40,
+        "growth_pct": null,
+        "gateway": null,
+        "gateway_addrs": null,
+        "static_count": 0,
+        "vlan_id": 20,
+        "v6_enabled": true,
+        "ra_mode": null
+      }
+    ],
+    "settings": {
+      "growth_pct": 25,
+      "gateway": "first",
+      "gateway_addrs": 1,
+      "p2p_prefix": 31,
+      "v6_site_prefix": 48,
+      "v6_building_prefix": 56,
+      "v6_infra_prefix": 56,
+      "v6_growth_pct": 100,
+      "v6_subnet_strategy": "sequential",
+      "v6_gateway_mode": "global",
+      "v6_link_local_gateway": "fe80::1",
+      "v6_ra_mode": "slaac"
+    },
+    "v6_prefix": "2001:db8:4200::/48",
+    "v6_kind": "doc",
+    "pinned_v6_infrastructure": [],
+    "blocked_subnets": [
+      {
+        "network": "10.42.8.0/24",
+        "parent_id": null,
+        "note": "Istniejące kamery poza planowanym oddziałem"
+      },
+      {
+        "network": "10.42.0.0/26",
+        "parent_id": "building",
+        "note": "Zajęta sieć w budynku"
+      },
+      {
+        "network": "2001:db8:4200:100::/64",
+        "parent_id": "building",
+        "note": "Istniejący segment IPv6"
+      }
+    ]
+  },
+  "plan": {
+    "project_id": "example-v11",
+    "v4_allocations": [
+      {
+        "node_id": "building",
+        "network": "10.42.0.0/24"
+      },
+      {
+        "node_id": "site",
+        "network": "10.42.0.0/24"
+      },
+      {
+        "node_id": "guests",
+        "network": "10.42.0.64/26"
+      },
+      {
+        "node_id": "office",
+        "network": "10.42.0.128/27"
+      }
+    ],
+    "v6_allocations": [
+      {
+        "node_id": "site",
+        "network": "2001:db8:4200::/48"
+      },
+      {
+        "node_id": "building",
+        "network": "2001:db8:4200:100::/56"
+      },
+      {
+        "node_id": "guests",
+        "network": "2001:db8:4200:101::/64"
+      },
+      {
+        "node_id": "office",
+        "network": "2001:db8:4200:102::/64"
+      }
+    ],
+    "free_blocks": [
+      {
+        "parent_id": null,
+        "network": "10.42.1.0/24",
+        "pool_kind": null
+      },
+      {
+        "parent_id": null,
+        "network": "10.42.2.0/23",
+        "pool_kind": null
+      },
+      {
+        "parent_id": null,
+        "network": "10.42.4.0/22",
+        "pool_kind": null
+      },
+      {
+        "parent_id": null,
+        "network": "10.42.9.0/24",
+        "pool_kind": null
+      },
+      {
+        "parent_id": null,
+        "network": "10.42.10.0/23",
+        "pool_kind": null
+      },
+      {
+        "parent_id": null,
+        "network": "10.42.12.0/22",
+        "pool_kind": null
+      },
+      {
+        "parent_id": null,
+        "network": "10.42.16.0/20",
+        "pool_kind": null
+      },
+      {
+        "parent_id": null,
+        "network": "10.42.32.0/19",
+        "pool_kind": null
+      },
+      {
+        "parent_id": null,
+        "network": "10.42.64.0/18",
+        "pool_kind": null
+      },
+      {
+        "parent_id": null,
+        "network": "10.42.128.0/17",
+        "pool_kind": null
+      },
+      {
+        "parent_id": "building",
+        "network": "10.42.0.160/27",
+        "pool_kind": null
+      },
+      {
+        "parent_id": "building",
+        "network": "10.42.0.192/26",
+        "pool_kind": null
+      },
+      {
+        "parent_id": "site",
+        "network": "2001:db8:4200:200::/55",
+        "pool_kind": "site"
+      },
+      {
+        "parent_id": "site",
+        "network": "2001:db8:4200:400::/54",
+        "pool_kind": "site"
+      },
+      {
+        "parent_id": "site",
+        "network": "2001:db8:4200:800::/53",
+        "pool_kind": "site"
+      },
+      {
+        "parent_id": "site",
+        "network": "2001:db8:4200:1000::/52",
+        "pool_kind": "site"
+      },
+      {
+        "parent_id": "site",
+        "network": "2001:db8:4200:2000::/51",
+        "pool_kind": "site"
+      },
+      {
+        "parent_id": "site",
+        "network": "2001:db8:4200:4000::/50",
+        "pool_kind": "site"
+      },
+      {
+        "parent_id": "site",
+        "network": "2001:db8:4200:8000::/49",
+        "pool_kind": "site"
+      },
+      {
+        "parent_id": "site",
+        "network": "2001:db8:4200:3::/64",
+        "pool_kind": "infrastructure"
+      },
+      {
+        "parent_id": "site",
+        "network": "2001:db8:4200:4::/62",
+        "pool_kind": "infrastructure"
+      },
+      {
+        "parent_id": "site",
+        "network": "2001:db8:4200:8::/61",
+        "pool_kind": "infrastructure"
+      },
+      {
+        "parent_id": "site",
+        "network": "2001:db8:4200:10::/60",
+        "pool_kind": "infrastructure"
+      },
+      {
+        "parent_id": "site",
+        "network": "2001:db8:4200:20::/59",
+        "pool_kind": "infrastructure"
+      },
+      {
+        "parent_id": "site",
+        "network": "2001:db8:4200:40::/58",
+        "pool_kind": "infrastructure"
+      },
+      {
+        "parent_id": "site",
+        "network": "2001:db8:4200:80::/57",
+        "pool_kind": "infrastructure"
+      },
+      {
+        "parent_id": "site",
+        "network": "2001:db8:4200:1::/64",
+        "pool_kind": "p2p"
+      },
+      {
+        "parent_id": "site",
+        "network": "2001:db8:4200:2::/64",
+        "pool_kind": "loopback"
+      },
+      {
+        "parent_id": "building",
+        "network": "2001:db8:4200:103::/64",
+        "pool_kind": "building"
+      },
+      {
+        "parent_id": "building",
+        "network": "2001:db8:4200:104::/62",
+        "pool_kind": "building"
+      },
+      {
+        "parent_id": "building",
+        "network": "2001:db8:4200:108::/61",
+        "pool_kind": "building"
+      },
+      {
+        "parent_id": "building",
+        "network": "2001:db8:4200:110::/60",
+        "pool_kind": "building"
+      },
+      {
+        "parent_id": "building",
+        "network": "2001:db8:4200:120::/59",
+        "pool_kind": "building"
+      },
+      {
+        "parent_id": "building",
+        "network": "2001:db8:4200:140::/58",
+        "pool_kind": "building"
+      },
+      {
+        "parent_id": "building",
+        "network": "2001:db8:4200:180::/57",
+        "pool_kind": "building"
+      }
+    ],
+    "findings": [
+      {
+        "code": "pool_fragmentation",
+        "level": "info",
+        "node_id": null,
+        "details": [
+          [
+            "free_addresses",
+            65024
+          ],
+          [
+            "largest_free_prefix",
+            17
+          ],
+          [
+            "continuity",
+            "64/127"
+          ]
+        ]
+      },
+      {
+        "code": "summary_route",
+        "level": "info",
+        "node_id": "site",
+        "details": [
+          [
+            "network",
+            "10.42.0.0/24"
+          ]
+        ]
+      },
+      {
+        "code": "pool_fragmentation",
+        "level": "info",
+        "node_id": "site",
+        "details": [
+          [
+            "free_addresses",
+            0
+          ],
+          [
+            "largest_free_prefix",
+            null
+          ],
+          [
+            "continuity",
+            null
+          ]
+        ]
+      },
+      {
+        "code": "summary_route",
+        "level": "info",
+        "node_id": "building",
+        "details": [
+          [
+            "network",
+            "10.42.0.0/24"
+          ]
+        ]
+      },
+      {
+        "code": "pool_fragmentation",
+        "level": "info",
+        "node_id": "building",
+        "details": [
+          [
+            "free_addresses",
+            96
+          ],
+          [
+            "largest_free_prefix",
+            26
+          ],
+          [
+            "continuity",
+            "2/3"
+          ]
+        ]
+      },
+      {
+        "code": "high_segment_utilization",
+        "level": "warning",
+        "node_id": "office",
+        "details": [
+          [
+            "required_usable",
+            26
+          ],
+          [
+            "usable_capacity",
+            30
+          ]
+        ]
+      }
+    ],
+    "v4_reservations": [
+      {
+        "node_id": "guests",
+        "network": "10.42.0.64/26",
+        "usable_needed": 51,
+        "first_usable": "10.42.0.65",
+        "last_usable": "10.42.0.126",
+        "gateway_addresses": [
+          "10.42.0.65"
+        ],
+        "static_range": null,
+        "dhcp_range": {
+          "first": "10.42.0.66",
+          "last": "10.42.0.126"
+        }
+      },
+      {
+        "node_id": "office",
+        "network": "10.42.0.128/27",
+        "usable_needed": 26,
+        "first_usable": "10.42.0.129",
+        "last_usable": "10.42.0.158",
+        "gateway_addresses": [
+          "10.42.0.129"
+        ],
+        "static_range": null,
+        "dhcp_range": {
+          "first": "10.42.0.130",
+          "last": "10.42.0.158"
+        }
+      }
+    ],
+    "v4_metrics": [
+      {
+        "parent_id": null,
+        "network": "10.42.0.0/16",
+        "allocated_addresses": 512,
+        "free_addresses": 65024,
+        "largest_free_block": "10.42.128.0/17"
+      },
+      {
+        "parent_id": "site",
+        "network": "10.42.0.0/24",
+        "allocated_addresses": 256,
+        "free_addresses": 0,
+        "largest_free_block": null
+      },
+      {
+        "parent_id": "building",
+        "network": "10.42.0.0/24",
+        "allocated_addresses": 160,
+        "free_addresses": 96,
+        "largest_free_block": "10.42.0.192/26"
+      }
+    ],
+    "v6_infrastructure": [
+      {
+        "site_id": "site",
+        "network": "2001:db8:4200::/56",
+        "reserved_pool": "2001:db8:4200::/64",
+        "p2p_pool": "2001:db8:4200:1::/64",
+        "loopback_pool": "2001:db8:4200:2::/64"
+      }
+    ],
+    "v6_segments": [
+      {
+        "node_id": "guests",
+        "network": "2001:db8:4200:101::/64",
+        "gateway": "2001:db8:4200:101::1",
+        "ra_mode": "slaac",
+        "reverse_zone": "1.0.1.0.0.0.2.4.8.b.d.0.1.0.0.2.ip6.arpa",
+        "endpoints": []
+      },
+      {
+        "node_id": "office",
+        "network": "2001:db8:4200:102::/64",
+        "gateway": "2001:db8:4200:102::1",
+        "ra_mode": "slaac",
+        "reverse_zone": "2.0.1.0.0.0.2.4.8.b.d.0.1.0.0.2.ip6.arpa",
+        "endpoints": []
+      }
+    ],
+    "v6_metrics": [
+      {
+        "parent_id": null,
+        "kind": "project",
+        "network": "2001:db8:4200::/48",
+        "allocated_addresses": 1208925819614629174706176,
+        "free_addresses": 0,
+        "largest_free_block": null
+      },
+      {
+        "parent_id": "site",
+        "kind": "site",
+        "network": "2001:db8:4200::/48",
+        "allocated_addresses": 9444732965739290427392,
+        "free_addresses": 1199481086648889884278784,
+        "largest_free_block": "2001:db8:4200:8000::/49"
+      },
+      {
+        "parent_id": "site",
+        "kind": "infrastructure",
+        "network": "2001:db8:4200::/56",
+        "allocated_addresses": 55340232221128654848,
+        "free_addresses": 4667026250648516558848,
+        "largest_free_block": "2001:db8:4200:80::/57"
+      },
+      {
+        "parent_id": "site",
+        "kind": "p2p",
+        "network": "2001:db8:4200:1::/64",
+        "allocated_addresses": 0,
+        "free_addresses": 18446744073709551616,
+        "largest_free_block": "2001:db8:4200:1::/64"
+      },
+      {
+        "parent_id": "site",
+        "kind": "loopback",
+        "network": "2001:db8:4200:2::/64",
+        "allocated_addresses": 0,
+        "free_addresses": 18446744073709551616,
+        "largest_free_block": "2001:db8:4200:2::/64"
+      },
+      {
+        "parent_id": "building",
+        "kind": "building",
+        "network": "2001:db8:4200:100::/56",
+        "allocated_addresses": 55340232221128654848,
+        "free_addresses": 4667026250648516558848,
+        "largest_free_block": "2001:db8:4200:180::/57"
+      }
+    ],
+    "is_complete": true
+  }
+}

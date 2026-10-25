@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block title %}{{ project.name }} · Address Plan{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">Edytor planu</p><h1>{{ project.name }}</h1><p>Ustal strukturę i zapotrzebowanie. Adresy przeliczą się po zmianie pola.</p></div><div><a href="/p/{{ saved.key }}/history" class="button secondary">Historia</a> <a href="/p/{{ saved.key }}/diagram" class="button secondary">Diagram</a> <a href="/p/{{ saved.key }}/print" class="button secondary">Druk / PDF</a> <a href="/p/{{ saved.key }}/export" class="button secondary">Podgląd i eksport</a></div></div>
+<ol class="workflow"><li><a href="#project-settings"><strong>1. Pule i reguły</strong></a><span>Zakres adresów całej sieci.</span></li><li><a href="#network-elements"><strong>2. Struktura i urządzenia</strong></a><span>Lokalizacja → budynek → sieć, np. Wi-Fi.</span></li><li><a href="#results"><strong>3. Wynik i dokumentacja</strong></a><span>Popraw błędy, potem pobierz dokumentację.</span></li></ol>
+{% include 'workspace.html' %}
+{% endblock %}

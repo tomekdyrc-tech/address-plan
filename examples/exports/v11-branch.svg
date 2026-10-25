@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1568" height="872.0" viewBox="0 0 1568 872.0" role="img" aria-labelledby="title desc">
+<title id="title">Plan adresacji: Oddział — blokady i rozbudowa</title>
+<desc id="desc">Hierarchia adresacji, nie fizyczna topologia połączeń. Czerwone karty oznaczają błędy, brązowe — zajęte podsieci. Brak CIDR oznaczono kreską.</desc>
+<rect width="1568" height="872.0" fill="#f3f7f8"/>
+<text x="24" y="32" font-family="sans-serif" font-size="20" fill="#173b49">Address Plan · KOMPLETNY</text>
+<path d="M 764 485.0 H 784 V 320.0 H 804" fill="none" stroke="#8cabb5" stroke-width="2"/>
+<path d="M 1154 320.0 H 1174 V 122.0 H 1194" fill="none" stroke="#8cabb5" stroke-width="2"/>
+<path d="M 374 633.5 H 394 V 485.0 H 414" fill="none" stroke="#8cabb5" stroke-width="2"/>
+<path d="M 1154 320.0 H 1174 V 254.0 H 1194" fill="none" stroke="#8cabb5" stroke-width="2"/>
+<path d="M 374 633.5 H 394 V 782.0 H 414" fill="none" stroke="#8cabb5" stroke-width="2"/>
+<path d="M 1154 320.0 H 1174 V 386.0 H 1194" fill="none" stroke="#8cabb5" stroke-width="2"/>
+<path d="M 1154 320.0 H 1174 V 518.0 H 1194" fill="none" stroke="#8cabb5" stroke-width="2"/>
+<path d="M 764 485.0 H 784 V 650.0 H 804" fill="none" stroke="#8cabb5" stroke-width="2"/>
+<g><title>Oddział — blokady i rozbudowa · KOMPLETNY · 10.42.0.0/16 · 2001:db8:4200::/48</title>
+<rect x="24" y="583.5" width="350" height="104" rx="10" fill="white" stroke="#173b49" stroke-width="2"/>
+<text x="38" y="605.5" font-family="sans-serif" font-size="12" fill="#173b49">KOMPLETNY</text>
+<text x="38" y="627.5" font-family="sans-serif" font-size="16" fill="#173b49">Oddział — blokady i rozbudowa</text>
+<text x="38" y="651.5" font-family="sans-serif" font-size="13" fill="#173b49">IPv4: 10.42.0.0/16</text>
+<text x="38" y="671.5" font-family="sans-serif" font-size="13" fill="#173b49">IPv6: 2001:db8:4200::/48</text>
+</g>
+<g><title>Biuro · Budynek · 10.42.0.0/24 · 2001:db8:4200:100::/56</title>
+<rect x="804" y="270.0" width="350" height="104" rx="10" fill="white" stroke="#246675" stroke-width="2"/>
+<text x="818" y="292.0" font-family="sans-serif" font-size="12" fill="#246675">Budynek</text>
+<text x="818" y="314.0" font-family="sans-serif" font-size="16" fill="#246675">Biuro</text>
+<text x="818" y="338.0" font-family="sans-serif" font-size="13" fill="#246675">IPv4: 10.42.0.0/24</text>
+<text x="818" y="358.0" font-family="sans-serif" font-size="13" fill="#246675">IPv6: 2001:db8:4200:100::/56</text>
+</g>
+<g><title>Goście · Segment · 10.42.0.64/26 · 2001:db8:4200:101::/64</title>
+<rect x="1194" y="72.0" width="350" height="104" rx="10" fill="white" stroke="#246675" stroke-width="2"/>
+<text x="1208" y="94.0" font-family="sans-serif" font-size="12" fill="#246675">Segment</text>
+<text x="1208" y="116.0" font-family="sans-serif" font-size="16" fill="#246675">Goście</text>
+<text x="1208" y="140.0" font-family="sans-serif" font-size="13" fill="#246675">IPv4: 10.42.0.64/26</text>
+<text x="1208" y="160.0" font-family="sans-serif" font-size="13" fill="#246675">IPv6: 2001:db8:4200:101::/64</text>
+</g>
+<g><title>Oddział Gdańsk · Lokalizacja · 10.42.0.0/24 · 2001:db8:4200::/48</title>
+<rect x="414" y="435.0" width="350" height="104" rx="10" fill="white" stroke="#246675" stroke-width="2"/>
+<text x="428" y="457.0" font-family="sans-serif" font-size="12" fill="#246675">Lokalizacja</text>
+<text x="428" y="479.0" font-family="sans-serif" font-size="16" fill="#246675">Oddział Gdańsk</text>
+<text x="428" y="503.0" font-family="sans-serif" font-size="13" fill="#246675">IPv4: 10.42.0.0/24</text>
+<text x="428" y="523.0" font-family="sans-serif" font-size="13" fill="#246675">IPv6: 2001:db8:4200::/48</text>
+</g>
+<g><title>Pracownicy · Segment · 10.42.0.128/27 · 2001:db8:4200:102::/64</title>
+<rect x="1194" y="204.0" width="350" height="104" rx="10" fill="white" stroke="#246675" stroke-width="2"/>
+<text x="1208" y="226.0" font-family="sans-serif" font-size="12" fill="#246675">Segment</text>
+<text x="1208" y="248.0" font-family="sans-serif" font-size="16" fill="#246675">Pracownicy</text>
+<text x="1208" y="272.0" font-family="sans-serif" font-size="13" fill="#246675">IPv4: 10.42.0.128/27</text>
+<text x="1208" y="292.0" font-family="sans-serif" font-size="13" fill="#246675">IPv6: 2001:db8:4200:102::/64</text>
+</g>
+<g><title>Istniejące kamery poza planowanym oddziałem · Blokada zewnętrzna · 10.42.8.0/24 · —</title>
+<rect x="414" y="732.0" width="350" height="104" rx="10" fill="white" stroke="#985c19" stroke-width="2"/>
+<text x="428" y="754.0" font-family="sans-serif" font-size="12" fill="#985c19">Blokada zewnętrzna</text>
+<text x="428" y="776.0" font-family="sans-serif" font-size="16" fill="#985c19">Istniejące kamery poza planowanym o…</text>
+<text x="428" y="800.0" font-family="sans-serif" font-size="13" fill="#985c19">IPv4: 10.42.8.0/24</text>
+<text x="428" y="820.0" font-family="sans-serif" font-size="13" fill="#985c19">IPv6: —</text>
+</g>
+<g><title>Zajęta sieć w budynku · Blokada zewnętrzna · 10.42.0.0/26 · —</title>
+<rect x="1194" y="336.0" width="350" height="104" rx="10" fill="white" stroke="#985c19" stroke-width="2"/>
+<text x="1208" y="358.0" font-family="sans-serif" font-size="12" fill="#985c19">Blokada zewnętrzna</text>
+<text x="1208" y="380.0" font-family="sans-serif" font-size="16" fill="#985c19">Zajęta sieć w budynku</text>
+<text x="1208" y="404.0" font-family="sans-serif" font-size="13" fill="#985c19">IPv4: 10.42.0.0/26</text>
+<text x="1208" y="424.0" font-family="sans-serif" font-size="13" fill="#985c19">IPv6: —</text>
+</g>
+<g><title>Istniejący segment IPv6 · Blokada zewnętrzna · — · 2001:db8:4200:100::/64</title>
+<rect x="1194" y="468.0" width="350" height="104" rx="10" fill="white" stroke="#985c19" stroke-width="2"/>
+<text x="1208" y="490.0" font-family="sans-serif" font-size="12" fill="#985c19">Blokada zewnętrzna</text>
+<text x="1208" y="512.0" font-family="sans-serif" font-size="16" fill="#985c19">Istniejący segment IPv6</text>
+<text x="1208" y="536.0" font-family="sans-serif" font-size="13" fill="#985c19">IPv4: —</text>
+<text x="1208" y="556.0" font-family="sans-serif" font-size="13" fill="#985c19">IPv6: 2001:db8:4200:100::/64</text>
+</g>
+<g><title>Infrastruktura IPv6 · Rezerwa · P2P · loopback · — · 2001:db8:4200::/56</title>
+<rect x="804" y="600.0" width="350" height="104" rx="10" fill="white" stroke="#246675" stroke-width="2"/>
+<text x="818" y="622.0" font-family="sans-serif" font-size="12" fill="#246675">Rezerwa · P2P · loopback</text>
+<text x="818" y="644.0" font-family="sans-serif" font-size="16" fill="#246675">Infrastruktura IPv6</text>
+<text x="818" y="668.0" font-family="sans-serif" font-size="13" fill="#246675">IPv4: —</text>
+<text x="818" y="688.0" font-family="sans-serif" font-size="13" fill="#246675">IPv6: 2001:db8:4200::/56</text>
+</g>
+</svg>

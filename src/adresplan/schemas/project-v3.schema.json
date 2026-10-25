@@ -1,0 +1,678 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:adresplan:project:3",
+  "$defs": {
+    "BlockedSubnetInput": {
+      "additionalProperties": false,
+      "properties": {
+        "network": {
+          "anyOf": [
+            {
+              "format": "ipv4network",
+              "type": "string"
+            },
+            {
+              "format": "ipv6network",
+              "type": "string"
+            }
+          ],
+          "title": "Network"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "note": {
+          "default": "",
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "network"
+      ],
+      "title": "BlockedSubnetInput",
+      "type": "object"
+    },
+    "BuildingInput": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "sort_order": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Sort Order",
+          "type": "integer"
+        },
+        "pinned_v4": {
+          "anyOf": [
+            {
+              "format": "ipv4network",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pinned V4"
+        },
+        "pinned_v6": {
+          "anyOf": [
+            {
+              "format": "ipv6network",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pinned V6"
+        },
+        "notes": {
+          "default": "",
+          "title": "Notes",
+          "type": "string"
+        },
+        "kind": {
+          "const": "building",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind"
+      ],
+      "title": "BuildingInput",
+      "type": "object"
+    },
+    "GatewayPosition": {
+      "enum": [
+        "first",
+        "last",
+        "none"
+      ],
+      "title": "GatewayPosition",
+      "type": "string"
+    },
+    "IPv6GatewayMode": {
+      "enum": [
+        "global",
+        "link_local"
+      ],
+      "title": "IPv6GatewayMode",
+      "type": "string"
+    },
+    "IPv6Kind": {
+      "enum": [
+        "gua",
+        "ula",
+        "doc"
+      ],
+      "title": "IPv6Kind",
+      "type": "string"
+    },
+    "IPv6RAMode": {
+      "enum": [
+        "slaac",
+        "dhcpv6"
+      ],
+      "title": "IPv6RAMode",
+      "type": "string"
+    },
+    "IPv6SubnetStrategy": {
+      "enum": [
+        "sequential",
+        "vlan_decimal_as_hex"
+      ],
+      "title": "IPv6SubnetStrategy",
+      "type": "string"
+    },
+    "InfrastructureInput": {
+      "additionalProperties": false,
+      "properties": {
+        "site_id": {
+          "minLength": 1,
+          "title": "Site Id",
+          "type": "string"
+        },
+        "network": {
+          "format": "ipv6network",
+          "title": "Network",
+          "type": "string"
+        },
+        "reserved_pool": {
+          "format": "ipv6network",
+          "title": "Reserved Pool",
+          "type": "string"
+        },
+        "p2p_pool": {
+          "format": "ipv6network",
+          "title": "P2P Pool",
+          "type": "string"
+        },
+        "loopback_pool": {
+          "format": "ipv6network",
+          "title": "Loopback Pool",
+          "type": "string"
+        }
+      },
+      "required": [
+        "site_id",
+        "network",
+        "reserved_pool",
+        "p2p_pool",
+        "loopback_pool"
+      ],
+      "title": "InfrastructureInput",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "ProjectInput": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "author": {
+          "default": "",
+          "title": "Author",
+          "type": "string"
+        },
+        "organization": {
+          "default": "",
+          "title": "Organization",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "document_date": {
+          "default": "",
+          "title": "Document Date",
+          "type": "string"
+        },
+        "v4_pool": {
+          "format": "ipv4network",
+          "title": "V4 Pool",
+          "type": "string"
+        },
+        "nodes": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "building": "#/$defs/BuildingInput",
+                "segment": "#/$defs/SegmentInput",
+                "site": "#/$defs/SiteInput"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/SiteInput"
+              },
+              {
+                "$ref": "#/$defs/BuildingInput"
+              },
+              {
+                "$ref": "#/$defs/SegmentInput"
+              }
+            ]
+          },
+          "title": "Nodes",
+          "type": "array"
+        },
+        "settings": {
+          "$ref": "#/$defs/SettingsInput"
+        },
+        "v6_prefix": {
+          "anyOf": [
+            {
+              "format": "ipv6network",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "V6 Prefix"
+        },
+        "v6_active": {
+          "default": true,
+          "title": "V6 Active",
+          "type": "boolean"
+        },
+        "v6_kind": {
+          "$ref": "#/$defs/IPv6Kind",
+          "default": "doc"
+        },
+        "pinned_v6_infrastructure": {
+          "items": {
+            "$ref": "#/$defs/InfrastructureInput"
+          },
+          "title": "Pinned V6 Infrastructure",
+          "type": "array"
+        },
+        "blocked_subnets": {
+          "items": {
+            "$ref": "#/$defs/BlockedSubnetInput"
+          },
+          "title": "Blocked Subnets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "v4_pool"
+      ],
+      "title": "ProjectInput",
+      "type": "object"
+    },
+    "SegmentInput": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "sort_order": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Sort Order",
+          "type": "integer"
+        },
+        "pinned_v4": {
+          "anyOf": [
+            {
+              "format": "ipv4network",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pinned V4"
+        },
+        "pinned_v6": {
+          "anyOf": [
+            {
+              "format": "ipv6network",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pinned V6"
+        },
+        "notes": {
+          "default": "",
+          "title": "Notes",
+          "type": "string"
+        },
+        "kind": {
+          "const": "segment",
+          "title": "Kind",
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/SegmentRole",
+          "default": "lan"
+        },
+        "hosts": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Hosts",
+          "type": "integer"
+        },
+        "growth_pct": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Growth Pct"
+        },
+        "gateway": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GatewayPosition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "gateway_addrs": {
+          "anyOf": [
+            {
+              "maximum": 3,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gateway Addrs"
+        },
+        "static_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Static Count",
+          "type": "integer"
+        },
+        "vlan_id": {
+          "anyOf": [
+            {
+              "maximum": 4094,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Vlan Id"
+        },
+        "v6_enabled": {
+          "default": true,
+          "title": "V6 Enabled",
+          "type": "boolean"
+        },
+        "ra_mode": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/IPv6RAMode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind"
+      ],
+      "title": "SegmentInput",
+      "type": "object"
+    },
+    "SegmentRole": {
+      "enum": [
+        "lan",
+        "mgmt",
+        "p2p",
+        "loopback"
+      ],
+      "title": "SegmentRole",
+      "type": "string"
+    },
+    "SettingsInput": {
+      "additionalProperties": false,
+      "properties": {
+        "growth_pct": {
+          "default": 25,
+          "minimum": 0,
+          "title": "Growth Pct",
+          "type": "integer"
+        },
+        "gateway": {
+          "$ref": "#/$defs/GatewayPosition",
+          "default": "first"
+        },
+        "gateway_addrs": {
+          "default": 1,
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Gateway Addrs",
+          "type": "integer"
+        },
+        "p2p_prefix": {
+          "default": 31,
+          "maximum": 31,
+          "minimum": 30,
+          "title": "P2P Prefix",
+          "type": "integer"
+        },
+        "v6_site_prefix": {
+          "default": 48,
+          "maximum": 60,
+          "minimum": 0,
+          "multipleOf": 4,
+          "title": "V6 Site Prefix",
+          "type": "integer"
+        },
+        "v6_building_prefix": {
+          "default": 56,
+          "maximum": 60,
+          "minimum": 52,
+          "multipleOf": 4,
+          "title": "V6 Building Prefix",
+          "type": "integer"
+        },
+        "v6_infra_prefix": {
+          "default": 56,
+          "maximum": 60,
+          "minimum": 0,
+          "multipleOf": 4,
+          "title": "V6 Infra Prefix",
+          "type": "integer"
+        },
+        "v6_growth_pct": {
+          "default": 100,
+          "minimum": 0,
+          "title": "V6 Growth Pct",
+          "type": "integer"
+        },
+        "v6_subnet_strategy": {
+          "$ref": "#/$defs/IPv6SubnetStrategy",
+          "default": "sequential"
+        },
+        "v6_gateway_mode": {
+          "$ref": "#/$defs/IPv6GatewayMode",
+          "default": "global"
+        },
+        "v6_link_local_gateway": {
+          "default": "fe80::1",
+          "format": "ipv6",
+          "title": "V6 Link Local Gateway",
+          "type": "string"
+        },
+        "v6_ra_mode": {
+          "$ref": "#/$defs/IPv6RAMode",
+          "default": "slaac"
+        }
+      },
+      "title": "SettingsInput",
+      "type": "object"
+    },
+    "SiteInput": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "sort_order": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Sort Order",
+          "type": "integer"
+        },
+        "pinned_v4": {
+          "anyOf": [
+            {
+              "format": "ipv4network",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pinned V4"
+        },
+        "pinned_v6": {
+          "anyOf": [
+            {
+              "format": "ipv6network",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pinned V6"
+        },
+        "notes": {
+          "default": "",
+          "title": "Notes",
+          "type": "string"
+        },
+        "kind": {
+          "const": "site",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind"
+      ],
+      "title": "SiteInput",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "maximum": 3,
+      "minimum": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "project": {
+      "$ref": "#/$defs/ProjectInput"
+    },
+    "plan": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Wynik poglądowy. Import ignoruje jego zawartość i przelicza projekt od nowa.",
+      "title": "Plan"
+    }
+  },
+  "required": [
+    "schema_version",
+    "project"
+  ],
+  "title": "DocumentInput",
+  "type": "object"
+}

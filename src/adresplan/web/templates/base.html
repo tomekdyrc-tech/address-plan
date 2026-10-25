@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf }}">
+  <meta name="htmx-config" content='{"allowEval":false,"allowScriptTags":false,"includeIndicatorStyles":false}'>
+  <title>{% block title %}Address Plan{% endblock %}</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/htmx.min.js" defer></script><script src="/static/app.js" defer></script>
+</head>
+<body>
+<header class="topbar"><a href="/" class="brand"><span class="brand-mark">AP</span> Address Plan</a>
+  <nav aria-label="Główna nawigacja"><a href="/">Projekty</a><a href="/calc">Kalkulator</a><a href="/templates">Szablony</a><label class="theme-control">Motyw<select id="theme-choice" aria-label="Motyw"><option value="auto">Systemowy</option><option value="light">Jasny</option><option value="dark">Ciemny</option></select></label><span class="local">v. {{ version }}</span></nav>
+</header>
+<main>{% block content %}{% endblock %}</main>
+<footer><span id="copy-status" role="status"></span> IPv4 VLSM / IPv6 · Dane na tym komputerze · Address Plan</footer>
+</body></html>

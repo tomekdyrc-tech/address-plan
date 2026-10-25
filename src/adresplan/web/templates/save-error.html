@@ -1,0 +1,3 @@
+<section id="results" class="panel" role="alert"><h2>Zmiany nie zostały zapisane</h2><p class="notice bad">{{ message }}</p>
+{% if issues %}<ul>{% for target,issue in issues %}<li><a href="#{{ target }}">{{ input_label(issue.path, project) }}: {{ issue.message }}</a><details class="technical-details"><summary>Szczegóły techniczne</summary>{{ issue.location }} · {{ issue.code }}</details></li>{% endfor %}</ul>{% endif %}
+<p>Wprowadzone wartości pozostają w formularzu. Popraw dane albo <a href="/p/{{ key }}">wczytaj zapisaną wersję</a>.</p></section>

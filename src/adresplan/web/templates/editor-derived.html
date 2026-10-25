@@ -1,0 +1,3 @@
+<div id="editor-derived" hidden {% if tree_oob %}hx-swap-oob="outerHTML"{% endif %}>
+{% for n in project.nodes %}<span data-derived-node="{{ n.id }}" data-search="{{ n.name }} {{ names.get(n.parent_id, '') }} {{ n.vlan_id|default('') }} {{ v4.get(n.id, '') }} {{ v6.get(n.id, '') }}" data-scope="{{ n.id }} {{ n.parent_id }} {{ parents.get(n.parent_id, '') }}" data-name="{{ n.name }}" data-label="{% if n.parent_id %}{{ names.get(n.parent_id, '') }} / {% endif %}{{ n.name }}" data-explanation="{{ explanations.get(n.id, '') }}"></span>{% endfor %}
+</div>

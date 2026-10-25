@@ -1,0 +1,8 @@
+{% macro field(f, prefix, value) %}
+<label>{{ f.label }}{% if f.optional %} <span class="muted">(opcjonalnie)</span>{% endif %}
+{% if f.choices %}<select name="{{ prefix }}{{ f.key }}">
+{% if f.optional %}<option value="" {% if value is none %}selected{% endif %}>Dziedzicz / brak</option>{% endif %}
+{% for key,label in f.choices %}<option value="{{ key }}" {% if value is not none and (value|string|lower) == key %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+{% else %}<input name="{{ prefix }}{{ f.key }}" type="{{ f.kind }}" value="{{ '' if value is none else value }}" {% if f.kind == 'number' %}step="1" min="0"{% endif %} spellcheck="false">{% endif %}
+</label>
+{% endmacro %}
